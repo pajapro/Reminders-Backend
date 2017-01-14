@@ -9,3 +9,6 @@ swift build
 
 1. Run `$ swift build` to compile 
 2. Run `$ .build/debug/TODO-Backend` to start the server
+
+## Xcode project
+This repo does not include an Xcode project. If you want to generate one locally, use `swift package generate-xcodeproj` command.
