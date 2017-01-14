@@ -1,4 +1,4 @@
-# TODO-Backend
+# 📝 TODO-Backend
 Backend for the TODO application, based on [Vapor](https://vapor.codes/) Swift web framework.
 
 ## Installation
