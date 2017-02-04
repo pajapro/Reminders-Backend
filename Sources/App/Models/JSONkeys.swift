@@ -9,6 +9,7 @@
 import Foundation
 
 struct JSONKeys {
+	static let id		= "id"
 	static let title	= "title"
 	static let tasks	= "tasks"
 	static let priority = "priority"
