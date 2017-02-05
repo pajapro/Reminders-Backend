@@ -1,6 +1,9 @@
 import Vapor
+import Foundation
+import VaporPostgreSQL
 
 let drop = Droplet()
+try drop.addProvider(VaporPostgreSQL.Provider.self)
 
 // Root request
 drop.get() { _ in
