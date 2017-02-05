@@ -8,4 +8,4 @@ To run TODO-Backend locally, you need to install [Swift 3](https://vapor.github.
 2. Run `$ .build/debug/TODO-Backend` to start the server
 
 ## 🛠 Xcode project
-This repo does not include an Xcode project. If you want to generate one locally, use `swift package generate-xcodeproj` command.
+This repo does not include an Xcode project. If you want to generate one locally, use `swift package generate-xcodeproj` command or simply `vapor xcode` to generate a new Xcode project for a project.
