@@ -15,6 +15,12 @@ public enum Priority: String {
 	case low	= "low"
 	case medium = "medium"
 	case high	= "high"
+	
+	static func priority(from string: String?) -> Priority? {
+		guard let unwrappedString = string else { return nil }
+		
+		return Priority(rawValue: unwrappedString)
+	}
 }
 
 
