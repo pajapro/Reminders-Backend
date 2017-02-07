@@ -23,14 +23,11 @@ public struct Task: Model {
 	
 	// MARK: - Properties
 	
+	/// Task entity name
+	fileprivate let entity = "tasks"
+	
 	/// Contains the identifier when the model is fetched from the database. If it is `nil`, it **will be set when the model is saved**.
 	public var id: Node?
-	
-	/// Generated date of task creation
-	public let creationDate: Date = Date()
-	
-	/// Task done state
-	public var isDone: Bool = false
 	
 	/// Task title
 	public var title: String
@@ -40,6 +37,12 @@ public struct Task: Model {
 	
 	/// Reminder date
 	public var dueDate: Date?
+	
+	/// Generated date of task creation
+	public var creationDate: Date = Date()
+	
+	/// Task done state
+	public var isDone: Bool = false
 	
 	// MARK: Computed properties
 	
