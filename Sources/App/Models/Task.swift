@@ -112,13 +112,21 @@ extension Task: JSONRepresentable {
 // MARK: - Preparation protocol
 
 extension Task: Preparation {
+
 	/// The prepare method should call any methods it needs on the database to prepare.
 	public static func prepare(_ database: Database) throws {
-		// TODO: implement when hooked with DB
+		try database.create(self.entity) { tasks in
+			tasks.id()
+			tasks.string(Identifiers.title)
+			tasks.string(Identifiers.priority)
+			tasks.string(Identifiers.dueDate)
+			tasks.string(Identifiers.creationDate)
+			tasks.bool(Identifiers.isDone)
+		}
 	}
-	
+
 	/// The revert method should undo any actions caused by the prepare method.
 	public static func revert(_ database: Database) throws {
-		// TODO: implement when hooked with DB
+		try database.delete(self.entity)	// only called when manually executed via CLI
 	}
 }
