@@ -4,6 +4,12 @@ import VaporPostgreSQL
 
 let drop = Droplet()
 try drop.addProvider(VaporPostgreSQL.Provider.self)
+// Connect to PostgreSQL DB
+do {
+	try drop.addProvider(VaporPostgreSQL.Provider.self)
+} catch {
+	print("Error adding provider: \(error)")
+}
 
 /// MARK: - Utility endpoinds
 
@@ -12,7 +18,7 @@ drop.get() { _ in
 	return try JSON(node : ["message": "More awesomeness coming soon..."])
 }
 
-// GET util resources
+// GET database version
 drop.get("dbversion") { _ in
 	if let db = drop.database?.driver as? PostgreSQLDriver {
 		let version = try db.raw("SELECT version()")
