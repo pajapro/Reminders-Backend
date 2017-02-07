@@ -3,7 +3,8 @@ import Foundation
 import VaporPostgreSQL
 
 let drop = Droplet()
-try drop.addProvider(VaporPostgreSQL.Provider.self)
+drop.preparations.append(Task.self)	// invoke `prepare` function to create corresponding table
+
 // Connect to PostgreSQL DB
 do {
 	try drop.addProvider(VaporPostgreSQL.Provider.self)
