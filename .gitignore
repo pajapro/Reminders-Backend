@@ -4,3 +4,4 @@
 /*.xcodeproj
 Config/secrets
 xcuserdata
+/Config/secrets/postgresql.json
