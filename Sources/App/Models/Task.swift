@@ -104,6 +104,7 @@ extension Task: NodeRepresentable {
 				Identifiers.id: self.id,
 				Identifiers.title: self.title,
 				Identifiers.priority: self.priority.rawValue,
+				Identifiers.dueDate: 0,
 				Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
 				Identifiers.isDone: self.isDone])
 		}
