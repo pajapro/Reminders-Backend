@@ -1,3 +1,5 @@
+[![Language Swift 3.0](https://img.shields.io/badge/Language-Swift%203-orange.svg)](https://swift.org) [![Vapor 1.3](https://img.shields.io/badge/Vapor-1.x-blue.svg)](http://vapor.codes/)
+
 # 🔔 Reminders-Backend
 Backend for the Reminders application, based on [Vapor](https://vapor.codes/) Swift web framework.
 
