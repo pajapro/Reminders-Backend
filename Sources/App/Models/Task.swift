@@ -15,6 +15,7 @@ public enum Priority: String {
 	case low	= "low"
 	case medium = "medium"
 	case high	= "high"
+	case none	= "none"
 	
 	static func priority(from string: String?) -> Priority? {
 		guard let unwrappedString = string else { return nil }
@@ -76,7 +77,7 @@ extension Task: NodeInitializable {
 	public init(node: Node, in context: Context) throws {
 		self.id = try node.extract(Identifiers.id)
 		self.title = try node.extract(Identifiers.title)
-		self.priority = try node.extract(Identifiers.priority, transform: Priority.priority) ?? .medium
+		self.priority = try node.extract(Identifiers.priority, transform: Priority.priority) ?? .none
 		self.dueDate = try node.extract(Identifiers.dueDate, transform: Date.date)
 		self.creationDate = try node.extract(Identifiers.creationDate, transform: Date.date)
 		self.isDone = try node.extract(Identifiers.isDone)
