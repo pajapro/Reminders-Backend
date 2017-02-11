@@ -1,1 +1,2 @@
-web: App --env=production --workdir="./"
+# Heroku configuration
+web: App --env=production --workdir="./" —-config:postgresql.url=$DATABASE_URL
