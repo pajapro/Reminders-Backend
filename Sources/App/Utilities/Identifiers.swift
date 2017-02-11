@@ -1,6 +1,6 @@
 //
 //  JSONkeys.swift
-//  TODO-Foundation
+//  Reminders-Foundation
 //
 //  Created by Pavel Procházka on 26/01/2017.
 //
