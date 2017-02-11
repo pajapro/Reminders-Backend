@@ -23,7 +23,6 @@ public enum Priority: String {
 	}
 }
 
-
 /// Struct holding information about a task.
 public struct Task: Model {
 	
@@ -69,22 +68,22 @@ public struct Task: Model {
 	}
 }
 
-// MARK: - NodeInitializable protocol
+// MARK: - NodeInitializable protocol (how to initialize our model FROM the database)
 
 extension Task: NodeInitializable {
 	
 	/// Initializer creating model object from Node (Fluent pulls data from DB into intermediate representation `Node` THEN we need to convert back to type-safe model)
 	public init(node: Node, in context: Context) throws {
-		self.id = try node.extract(JSONKeys.id)
-		self.title = try node.extract(JSONKeys.title)
-		
-		// TODO: how to transform Date and enum? 
-		self.priority = .high //try node.extract(JSONKeys.priority, transform: Priority.init)
-		self.dueDate = Date() //try node.extract(JSONKeys.dueDate, transform: DateFormatter.configuredDateFormatter().date(from: <#T##String#>))
+		self.id = try node.extract(Identifiers.id)
+		self.title = try node.extract(Identifiers.title)
+		self.priority = try node.extract(Identifiers.priority, transform: Priority.priority) ?? .medium
+		self.dueDate = try node.extract(Identifiers.dueDate, transform: Date.date)
+		self.creationDate = try node.extract(Identifiers.creationDate, transform: Date.date)
+		self.isDone = try node.extract(Identifiers.isDone)
 	}
 }
 
-// MARK: - NodeRepresentable protocol
+// MARK: - NodeRepresentable protocol (how to save our model TO the database)
 
 extension Task: NodeRepresentable {
 	
@@ -93,15 +92,19 @@ extension Task: NodeRepresentable {
 		var node: Node
 		if let unwrappedDueDate = self.dueDate {
 			node = try Node(node: [
-				JSONKeys.id: self.id,
-				JSONKeys.title: self.title,
-				JSONKeys.priority: self.priority.rawValue,
-				JSONKeys.dueDate: DateFormatter.configuredDateFormatter().string(from: unwrappedDueDate)])
+				Identifiers.id: self.id,
+				Identifiers.title: self.title,
+				Identifiers.priority: self.priority.rawValue,
+				Identifiers.dueDate: unwrappedDueDate.timeIntervalSince1970,
+				Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
+				Identifiers.isDone: self.isDone])
 		} else {
 			node = try Node(node: [
-				JSONKeys.id: self.id,
-				JSONKeys.title: self.title,
-				JSONKeys.priority: self.priority.rawValue])
+				Identifiers.id: self.id,
+				Identifiers.title: self.title,
+				Identifiers.priority: self.priority.rawValue,
+				Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
+				Identifiers.isDone: self.isDone])
 		}
 		
 		return node
@@ -125,8 +128,8 @@ extension Task: Preparation {
 			tasks.id()
 			tasks.string(Identifiers.title)
 			tasks.string(Identifiers.priority)
-			tasks.string(Identifiers.dueDate)
-			tasks.string(Identifiers.creationDate)
+			tasks.double(Identifiers.dueDate)
+			tasks.double(Identifiers.creationDate)
 			tasks.bool(Identifiers.isDone)
 		}
 	}
