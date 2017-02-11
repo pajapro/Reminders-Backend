@@ -90,8 +90,13 @@ drop.post("tasks") { request in
 }
 
 /// Retrieve all tasks
-drop.get("tasks") { _ in
-	return try Task.all().makeJSON()
+drop.get("tasks") { request in
+	if let taskTitle = request.data[Identifiers.title]?.string {
+		let foundTasks = try Task.query().filter(Identifiers.title, contains: taskTitle).all()
+		return try foundTasks.makeJSON()
+	} else {
+		return try Task.all().makeJSON()
+	}
 }
 
 /// Retrieve a task
@@ -143,15 +148,6 @@ drop.delete("tasks", Int.self) { request, taskID in
 	return Response(status: .ok)
 }
 
-/// Search for a task
-drop.get("tasks") { request in
-	guard let taskTitle = request.data[Identifiers.title]?.string else {
-		throw Abort.notFound
-	}
-	
-	let foundTasks = try Task.query().filter(Identifiers.title, contains: taskTitle).all()
-	return try foundTasks.makeJSON()
-}
 
 
 drop.run()
