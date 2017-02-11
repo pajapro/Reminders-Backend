@@ -1,4 +1,4 @@
-# 📝 Reminders-Backend
+# 🔔 Reminders-Backend
 Backend for the Reminders application, based on [Vapor](https://vapor.codes/) Swift web framework.
 
 ## 📥 Installation
