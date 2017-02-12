@@ -8,10 +8,13 @@ The goal of this personal learning project is to develop simplified [Reminders a
 [source](https://support.apple.com/en-us/HT205890)
 
 ## 📥 Installation
-To run Reminders-Backend locally, you need to install [Swift 3](https://vapor.github.io/documentation/getting-started/install-swift-3-macos.html) on your mac OS. After that, execute the following commands:
+To run Reminders-Backend locally, you need to install [Swift 3](https://vapor.github.io/documentation/getting-started/install-swift-3-macos.html) on your mac OS. Moreover, you need to install [PostgreSQL](https://www.postgresql.org/download/macosx/) and [configure connection](https://github.com/vapor/postgresql-provider#config). 
 
-1. Run `$ swift build` to compile 
-2. Run `$ .build/debug/Reminders-Backend` to start the server
+After that, execute the following commands:
+
+1. Execute `$ postgres -D /usr/local/var/postgres/` to start PostgreSQL service
+2. Run `$ swift build` to compile
+3. Run `$ .build/debug/Reminders-Backend` to start the server
 
 ## 🛠 Xcode project
 This repo does not include an Xcode project. If you want to generate one locally, use `swift package generate-xcodeproj` command or simply `vapor xcode` to generate a new Xcode project for a project.
