@@ -3,7 +3,7 @@
 # 🔔 Reminders-Backend
 The goal of this personal learning project is to develop simplified [Reminders app](https://support.apple.com/en-us/HT205890)  on web. The application is written in [Swift 3.0](https://swift.org/blog/swift-3-0-released/) and is based on [Vapor](https://vapor.codes/) Swift web framework.
 
-> Use Reminders for projects, groceries, and anything else that you want to keep track of. You can set when and where you want to be reminded. You can also remind yourself to get back to something you’re doing in another app. 
+> Use Reminders for projects, groceries, and anything else that you want to keep track of. You can set when and where you want to be reminded. 
 
 [source](https://support.apple.com/en-us/HT205890)
 
