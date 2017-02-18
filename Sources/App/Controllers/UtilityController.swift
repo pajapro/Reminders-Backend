@@ -16,6 +16,7 @@ final class UtilityController {
 	func addRoutes(drop: Droplet) {
 		drop.get(handler: retrieveRoot)
 		drop.get("dbversion", handler: databaseVersion)
+		drop.get("os", handler: retrieveOperatingSystem)
 	}
 	
 	/// Retrieve root
@@ -31,5 +32,16 @@ final class UtilityController {
 		} else {
 			return "No database connection"
 		}
+	}
+	
+	/// Retrieve the OS application is running in
+	func retrieveOperatingSystem(for request: Request) throws -> ResponseRepresentable {
+		#if os(Linux)
+			return try JSON(node: ["operating_system": "Linux"])
+		#elseif os(OSX)
+			return try JSON(node: ["operating_system": "OSX"])
+		#else
+			return try JSON(node: ["operating_system": "...other OS"])
+		#endif
 	}
 }
