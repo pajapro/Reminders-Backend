@@ -66,9 +66,7 @@ extension List: JSONRepresentable {
 	public func makeJSON() throws -> JSON {
 		return try JSON(node: [
 				Identifiers.id: self.id,
-				Identifiers.title: self.title,
-				"task_count": self.tasks().all().count,
-				"remaining_task_count": self.tasks().filter(Identifiers.isDone, .equals, false).count()
+				Identifiers.title: self.title
 			])
 	}
 }
