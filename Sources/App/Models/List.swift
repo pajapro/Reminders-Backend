@@ -24,18 +24,6 @@ public struct List: Model {
 	/// List title
 	public var title: String
 	
-	// MARK: Computed properties
-	
-	/// Returns the amount of completed tasks
-//	public var completedTasks: Int {
-//		return self.tasks.filter{ $0.isDone }.count
-//	}
-//	
-//	/// Returns the amount of incompleted tasks
-//	public var incompletedTasks: Int {
-//		return self.tasks.filter{ !$0.isDone }.count
-//	}
-	
 	// MARK: - Initializers
 	
 	public init(title: String) {
