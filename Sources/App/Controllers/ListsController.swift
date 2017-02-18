@@ -19,6 +19,7 @@ final class ListsController {
 		lists.post(handler: create)
 		lists.get(handler: retrieveAll)
 		lists.get(Int.self, handler: retrieve)
+		lists.get(Int.self, Task.entity, handler: retrieveTasks)
 		lists.put(Int.self, handler: update)
 		lists.delete(Int.self, handler: delete)
 	}
@@ -51,6 +52,17 @@ final class ListsController {
 		}
 		
 		return try list.makeJSON()
+	}
+	
+	/// Retrieve all task associated with list
+	func retrieveTasks(for request: Request, with listId: Int) throws -> ResponseRepresentable {
+		guard let list = try List.find(listId) else {
+			throw Abort.notFound
+		}
+		
+		let tasks = try list.children(nil, Task.self).all()
+		
+		return try tasks.makeJSON()
 	}
 	
 	/// Update a list
