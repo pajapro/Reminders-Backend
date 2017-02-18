@@ -13,11 +13,15 @@ do {
 	print("Error adding provider: \(error)")
 }
 
-// Task routes
-let taskController = TasksController()
-taskController.addRoutes(drop: drop)
+// Add lists routes
+let listsController = ListsController()
+listsController.addRoutes(drop: drop)
 
-// Utility routes
+// Add tasks routes
+let tasksController = TasksController()
+tasksController.addRoutes(drop: drop)
+
+// Add utility routes
 let utilityController = UtilityController()
 utilityController.addRoutes(drop: drop)
 
