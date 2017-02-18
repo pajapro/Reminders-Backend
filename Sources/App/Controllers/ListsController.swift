@@ -60,7 +60,7 @@ final class ListsController {
 			throw Abort.notFound
 		}
 		
-		let tasks = try list.tasks().all()
+		let tasks = try list.children(nil, Task.self).all()
 		
 		return try tasks.makeJSON()
 	}
