@@ -91,3 +91,12 @@ extension List: Preparation {
 		try database.delete(self.entity)	// only called when manually executed via CLI
 	}
 }
+
+// MARK: - Convenience method to fetch associated tasks
+
+extension List {
+	
+	func tasks() throws -> Children<Task> {
+		return children(nil, Task.self)
+	}
+}
