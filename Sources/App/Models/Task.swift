@@ -112,7 +112,27 @@ extension Task: NodeRepresentable {
 
 extension Task: JSONRepresentable {
 	
-	// No implementation needed as it uses `makeNode` function from `NodeRepresentable` protocol to convert a Node into JSON
+	/// Converts model into JSON _and_ enriches it with additional values
+	public func makeJSON() throws -> JSON {
+		if let unwrappedDueDate = self.dueDate {
+			return try JSON(node: [
+				Identifiers.id: self.id,
+				Identifiers.title: self.title,
+				Identifiers.priority: self.priority.rawValue,
+				Identifiers.dueDate: DateFormatter.configuredDateFormatter().string(from: unwrappedDueDate),
+				Identifiers.creationDate: DateFormatter.configuredDateFormatter().string(from: self.creationDate),
+				Identifiers.isDone: self.isDone
+			])
+		} else {
+			return try JSON(node: [
+				Identifiers.id: self.id,
+				Identifiers.title: self.title,
+				Identifiers.priority: self.priority.rawValue,
+				Identifiers.creationDate: DateFormatter.configuredDateFormatter().string(from: self.creationDate),
+				Identifiers.isDone: self.isDone
+			])
+		}
+	}
 }
 
 // MARK: - Preparation protocol
