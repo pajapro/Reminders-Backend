@@ -125,7 +125,7 @@ extension Task: Preparation {
 			tasks.id()
 			tasks.string(Identifiers.title)
 			tasks.string(Identifiers.priority)
-			tasks.double(Identifiers.dueDate)
+			tasks.double(Identifiers.dueDate, optional: true)
 			tasks.double(Identifiers.creationDate)
 			tasks.bool(Identifiers.isDone)
 			tasks.parent(List.self, optional: false)
