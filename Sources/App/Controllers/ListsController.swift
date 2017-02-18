@@ -60,12 +60,9 @@ final class ListsController {
 			throw Abort.notFound
 		}
 		
-		do {
-			let tasks = try list.tasks().all()
-			return try tasks.makeJSON()
-		} catch {
-			return try JSON(node: ["error": error.localizedDescription])
-		}
+		let tasks = try list.tasks().all()
+		
+		return try tasks.makeJSON()
 	}
 	
 	/// Update a list
