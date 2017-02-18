@@ -32,7 +32,7 @@ public struct Task: Model {
 	/// Task entity name
 	fileprivate let entity = "tasks"
 	
-	/// Contains the identifier when the model is fetched from the database. If it is `nil`, it **will be set when the model is saved**.
+	/// Identifier when the model is fetched from the database. If it is `nil`, it **will be set when the model is saved**.
 	public var id: Node?
 	
 	/// Task title
@@ -50,6 +50,9 @@ public struct Task: Model {
 	/// Task done state
 	public var isDone: Bool = false
 	
+	/// Identifier of a List (parent) it belongs to
+	public var listId: Node?
+	
 	// MARK: Computed properties
 	
 	/// Computes the remaining time from now until due date
@@ -61,11 +64,12 @@ public struct Task: Model {
 	
 	// MARK: - Initializers
 	
-	public init(title: String, priority: Priority, dueDate: Date? = nil) {
+	public init(title: String, priority: Priority, dueDate: Date? = nil, listId: Node? = nil) {
 		self.id = nil
 		self.title = title
 		self.priority = priority
 		self.dueDate = dueDate
+		self.listId = listId
 	}
 }
 
@@ -78,9 +82,10 @@ extension Task: NodeInitializable {
 		self.id = try node.extract(Identifiers.id)
 		self.title = try node.extract(Identifiers.title)
 		self.priority = try node.extract(Identifiers.priority, transform: Priority.priority) ?? .none
-		self.dueDate = try node.extract(Identifiers.dueDate, transform: Date.date)
+		self.dueDate = try node.extract(Identifiers.dueDate, transform: Date.date) ?? nil
 		self.creationDate = try node.extract(Identifiers.creationDate, transform: Date.date)
 		self.isDone = try node.extract(Identifiers.isDone)
+		self.listId = try node.extract(Identifiers.listId)
 	}
 }
 
@@ -98,7 +103,8 @@ extension Task: NodeRepresentable {
 				Identifiers.priority: self.priority.rawValue,
 				Identifiers.dueDate: unwrappedDueDate.timeIntervalSince1970,
 				Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
-				Identifiers.isDone: self.isDone])
+				Identifiers.isDone: self.isDone,
+				Identifiers.listId: self.listId])
 		} else {
 			node = try Node(node: [
 				Identifiers.id: self.id,
@@ -106,7 +112,8 @@ extension Task: NodeRepresentable {
 				Identifiers.priority: self.priority.rawValue,
 				Identifiers.dueDate: 0,
 				Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
-				Identifiers.isDone: self.isDone])
+				Identifiers.isDone: self.isDone,
+				Identifiers.listId: self.listId])
 		}
 		
 		return node
@@ -133,6 +140,7 @@ extension Task: Preparation {
 			tasks.double(Identifiers.dueDate)
 			tasks.double(Identifiers.creationDate)
 			tasks.bool(Identifiers.isDone)
+			tasks.parent(List.self, optional: false)
 		}
 	}
 
