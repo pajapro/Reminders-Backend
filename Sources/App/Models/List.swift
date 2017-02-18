@@ -49,9 +49,12 @@ extension List: NodeRepresentable {
 	
 	/// Converts type-safe model into an instance of `Node` object
 	public func makeNode(context: Context) throws -> Node {
-		return try Node(node: [
+		let node = try Node(node: [
 				Identifiers.id: self.id,
-				Identifiers.title: self.title])
+				Identifiers.title: self.title
+			])
+		
+		return node
 	}
 }
 
@@ -59,7 +62,15 @@ extension List: NodeRepresentable {
 
 extension List: JSONRepresentable {
 	
-	// No implementation needed as it uses `makeNode` function from `NodeRepresentable` protocol to convert a Node into JSON
+	/// Converts model into JSON _and_ enriches it with additional values
+	public func makeJSON() throws -> JSON {
+		return try JSON(node: [
+				Identifiers.id: self.id,
+				Identifiers.title: self.title,
+				"task_count": self.tasks().all().count,
+				"remaining_task_count": self.tasks().filter(Identifiers.isDone, .equals, false).count()
+			])
+	}
 }
 
 // MARK: - Preparation protocol
