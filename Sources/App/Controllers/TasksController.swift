@@ -29,6 +29,10 @@ final class TasksController {
 			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.title) value")
 		}
 		
+		guard let listId = request.data[Identifiers.listId]?.int else {
+			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.listId) value")
+		}
+		
 		var task: Task
 		var taskPriority: Priority = .none
 		var taskDueDate: Date? = nil
@@ -41,7 +45,7 @@ final class TasksController {
 			taskDueDate = Date(timeIntervalSince1970: taskDueDateRaw)
 		}
 		
-		task = Task(title: taskTitle, priority: taskPriority, dueDate: taskDueDate)
+		task = Task(title: taskTitle, priority: taskPriority, dueDate: taskDueDate, listId: Node(listId))
 		try task.save()
 		return try task.makeJSON()
 	}
