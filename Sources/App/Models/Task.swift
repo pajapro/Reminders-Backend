@@ -82,7 +82,7 @@ extension Task: NodeInitializable {
 		self.id = try node.extract(Identifiers.id)
 		self.title = try node.extract(Identifiers.title)
 		self.priority = try node.extract(Identifiers.priority, transform: Priority.priority) ?? .none
-		self.dueDate = try node.extract(Identifiers.dueDate, transform: Date.date) 
+		self.dueDate = try? node.extract(Identifiers.dueDate, transform: Date.date)	// Parse optional variable otherwise `nil`
 		self.creationDate = try node.extract(Identifiers.creationDate, transform: Date.date)
 		self.isDone = try node.extract(Identifiers.isDone)
 		self.listId = try node.extract(Identifiers.listId)
