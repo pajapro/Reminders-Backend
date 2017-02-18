@@ -109,6 +109,6 @@ extension List: Preparation {
 extension List {
 	
 	func tasks() throws -> Children<Task> {
-		return children(nil, Task.self)
+		return children()
 	}
 }
