@@ -64,10 +64,23 @@ extension List: JSONRepresentable {
 	
 	/// Converts model into JSON _and_ enriches it with additional values
 	public func makeJSON() throws -> JSON {
-		return try JSON(node: [
+		var result: JSON
+		do {
+			let tasks = try self.tasks()
+			result = try JSON(node: [
+				Identifiers.id: self.id,
+				Identifiers.title: self.title,
+				"task_count": tasks.all().count,
+				"remaining_task_count": tasks.filter(Identifiers.isDone, .equals, false).count()
+			])
+		} catch {
+			result = try JSON(node: [
 				Identifiers.id: self.id,
 				Identifiers.title: self.title
 			])
+		}
+		
+		return result
 	}
 }
 
