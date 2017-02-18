@@ -16,7 +16,8 @@ struct Identifiers {
 	static let title		= "title"
 	static let tasks		= "tasks"
 	static let priority		= "priority"
-	static let dueDate		= "duedate"
-	static let creationDate	= "creationdate"
-	static let isDone		= "isdone"
+	static let dueDate		= "due_date"
+	static let creationDate	= "creation_date"
+	static let isDone		= "is_done"
+	static let listId		= "list_id"
 }
