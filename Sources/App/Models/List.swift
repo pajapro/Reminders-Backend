@@ -66,12 +66,14 @@ extension List: JSONRepresentable {
 	public func makeJSON() throws -> JSON {
 		var result: JSON
 		do {
-			let tasks = try self.tasks()
+			let allTasksCount = try self.tasks().count()
+			let remainingTasksCount = try self.tasks().filter(Identifiers.isDone, .equals, false).count()
+			
 			result = try JSON(node: [
 				Identifiers.id: self.id,
 				Identifiers.title: self.title,
-				"task_count": tasks.all().count,
-				"remaining_task_count": tasks.filter(Identifiers.isDone, .equals, false).count()
+				"task_count": allTasksCount,
+				"remaining_task_count": remainingTasksCount
 			])
 		} catch {
 			result = try JSON(node: [
