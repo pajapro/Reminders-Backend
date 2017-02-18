@@ -95,26 +95,14 @@ extension Task: NodeRepresentable {
 	
 	/// Converts type-safe model into an instance of `Node` object
 	public func makeNode(context: Context) throws -> Node {
-		var node: Node
-		if let unwrappedDueDate = self.dueDate {
-			node = try Node(node: [
-				Identifiers.id: self.id,
-				Identifiers.title: self.title,
-				Identifiers.priority: self.priority.rawValue,
-				Identifiers.dueDate: unwrappedDueDate.timeIntervalSince1970,
-				Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
-				Identifiers.isDone: self.isDone,
-				Identifiers.listId: self.listId])
-		} else {
-			node = try Node(node: [
-				Identifiers.id: self.id,
-				Identifiers.title: self.title,
-				Identifiers.priority: self.priority.rawValue,
-				Identifiers.dueDate: 0,
-				Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
-				Identifiers.isDone: self.isDone,
-				Identifiers.listId: self.listId])
-		}
+		let node = try Node(node: [
+			Identifiers.id: self.id,
+			Identifiers.title: self.title,
+			Identifiers.priority: self.priority.rawValue,
+			Identifiers.dueDate: self.dueDate?.timeIntervalSince1970,
+			Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
+			Identifiers.isDone: self.isDone,
+			Identifiers.listId: self.listId])
 		
 		return node
 	}
