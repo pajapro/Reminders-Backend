@@ -4,7 +4,10 @@ import VaporPostgreSQL
 import HTTP
 
 let drop = Droplet()
-drop.preparations.append(Task.self)	// invoke `prepare` function to create corresponding table
+
+// Invoke `prepare` function to create corresponding tables
+drop.preparations.append(List.self)
+drop.preparations.append(Task.self)
 
 // Connect to PostgreSQL DB
 do {
