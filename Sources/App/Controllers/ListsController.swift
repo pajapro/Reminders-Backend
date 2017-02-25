@@ -37,12 +37,20 @@ final class ListsController {
 	
 	/// Retrieve all lists or those matching the provided query
 	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
+		let jsonResponse: JSON
 		if let listTitle = request.data[Identifiers.title]?.string {
 			let foundLists = try List.query().filter(Identifiers.title, contains: listTitle).all()
-			return try foundLists.makeJSON()
+			jsonResponse = try foundLists.makeJSON()
 		} else {
-//			return try List.all().makeJSON()
-			return try drop.view.make(List.entity, Node(node: [List.entity: List.all().makeJSON()]))
+			jsonResponse = try List.all().makeJSON()
+		}
+		
+		
+		// Return JSON otherwise HTML page
+		if request.headers[HeaderKey.contentType] == Identifiers.json {
+			return jsonResponse
+		} else {
+			return try drop.view.make(List.entity, Node(node: [List.entity: jsonResponse]))
 		}
 	}
 	

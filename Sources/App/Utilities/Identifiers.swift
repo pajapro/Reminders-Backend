@@ -20,4 +20,7 @@ struct Identifiers {
 	static let creationDate	= "creation_date"
 	static let isDone		= "is_done"
 	static let listId		= "list_id"
+	
+	// HTTP Content-Type
+	static let json = "application/json"
 }

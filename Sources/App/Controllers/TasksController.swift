@@ -52,12 +52,19 @@ final class TasksController {
 	
 	/// Retrieve all tasks or those matching the provided query
 	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
+		let jsonResponse: JSON
 		if let taskTitle = request.data[Identifiers.title]?.string {
 			let foundTasks = try Task.query().filter(Identifiers.title, contains: taskTitle).all()
-			return try foundTasks.makeJSON()
+			jsonResponse = try foundTasks.makeJSON()
 		} else {
-//			return try Task.all().makeJSON()
-			return try drop.view.make(Task.entity, Node(node: [Task.entity: Task.all().makeJSON()]))
+			jsonResponse = try Task.all().makeJSON()
+		}
+		
+		// Return JSON otherwise HTML page
+		if request.headers[HeaderKey.contentType] == Identifiers.json {
+			return jsonResponse
+		} else {
+			return try drop.view.make(Task.entity, Node(node: [Task.entity: jsonResponse]))
 		}
 	}
 	
