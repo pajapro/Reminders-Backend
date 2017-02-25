@@ -56,7 +56,8 @@ final class TasksController {
 			let foundTasks = try Task.query().filter(Identifiers.title, contains: taskTitle).all()
 			return try foundTasks.makeJSON()
 		} else {
-			return try Task.all().makeJSON()
+//			return try Task.all().makeJSON()
+			return try drop.view.make(Task.entity, Node(node: [Task.entity: Task.all().makeJSON()]))
 		}
 	}
 	

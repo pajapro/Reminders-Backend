@@ -1,0 +1,19 @@
+#extend("master")
+
+#export("body") {
+	<div class="row">
+		<div class="u-full-width">
+			<h1>Tasks:</h1>
+		</div>
+	</div>
+
+	<div>
+		#loop(tasks, "task") {
+			<div class="row">
+				<div class="eight columns">
+					<h5><span>#(task.title)</span></h5>
+				</div>
+			</div>
+		}
+	</div>
+}
