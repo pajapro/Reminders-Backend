@@ -67,13 +67,13 @@ extension List: JSONRepresentable {
 		var result: JSON
 		do {
 			let allTasksCount = try self.tasks().count()
-			let remainingTasksCount = try self.tasks().filter(Identifiers.isDone, .equals, false).count()
+			let completedTasksCount = try self.tasks().filter(Identifiers.isDone, .equals, true).count()
 			
 			result = try JSON(node: [
 				Identifiers.id: self.id,
 				Identifiers.title: self.title,
 				"task_count": allTasksCount,
-				"remaining_task_count": remainingTasksCount
+				"completed_task_count": completedTasksCount
 			])
 		} catch {
 			result = try JSON(node: [
