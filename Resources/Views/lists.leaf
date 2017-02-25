@@ -1,0 +1,22 @@
+#extend("master")
+
+#export("body") {
+	<div class="row">
+		<div class="u-full-width">
+			<h1>Lists:</h1>
+		</div>
+	</div>
+
+	<div>
+		#loop(lists, "list") {
+			<div class="row">
+				<div class="eight columns">
+					<h5><span>#(list.title)</span></h5>
+				</div>
+				<div class="four columns">
+					<p><span>completed #(list.completed_task_count)/#(list.task_count)<span></p>
+				</div>
+			</div>
+		}
+	</div>
+}

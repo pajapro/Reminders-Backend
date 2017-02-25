@@ -41,7 +41,8 @@ final class ListsController {
 			let foundLists = try List.query().filter(Identifiers.title, contains: listTitle).all()
 			return try foundLists.makeJSON()
 		} else {
-			return try List.all().makeJSON()
+//			return try List.all().makeJSON()
+			return try drop.view.make(List.entity, Node(node: [List.entity: List.all().makeJSON()]))
 		}
 	}
 	
