@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Reminders in Swift</title>
+		
+		<!-- Mobile Specific Metas -->
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+	  
+		<!-- FONT -->
+		<link href='//fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'>
+			
+		<!-- CSS -->
+		<link rel="stylesheet" href="/styles/normalize.css">
+		<link rel="stylesheet" href="/styles/skeleton.css">
+	</head>
+	<body>
+		<div class="container">
+        #import("body")
+		</div>
+	</body>
+</html>
