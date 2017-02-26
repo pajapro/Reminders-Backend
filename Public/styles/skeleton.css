@@ -416,3 +416,21 @@ there.
 
 /* Larger than Desktop HD */
 @media (min-width: 1200px) {}
+
+/* Intro section
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+.intro h1,
+.intro p {
+	text-align: center;
+}
+
+.intro img {
+	display: block;
+	margin-left: auto;
+	margin-right: auto
+}
+
+.button.button-primary {
+	position: relative;
+	margin-left: 43%;
+}

@@ -1,0 +1,36 @@
+#extend("master")
+
+#export("body") {
+	<section class="intro">
+		<div class="row">
+			<div class="u-full-width">
+				<h1>Reminders app</h1>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="u-full-width">
+				<img src="/reminders_icon.jpeg">
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="u-full-width">
+				<p>Reminders app is a personal experimental project, where the goal is to <i>experiment with server-side Swift</i> framework <a href="https://vapor.codes/" target="_blank">Vapor</a>.</p>
+				<p>The project is heavily inspired by Apple's <a href="https://support.apple.com/en-us/HT205890" target="_blank">Reminders app</a> and can be found on <a href="https://github.com/pajapro/Reminders-Backend" target="_blank">Github <i class="fa fa-github" aria-hidden="true"></i></a>.</p>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="u-full-width">
+				<a class="button button-primary" href="/lists">Get started</a>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="u-full-width">
+				<p>Copyright © 2017 <a href="http://prochazka.io" target="_blank">Pavel Procházka</a></p>
+			</div>
+		</div>
+	</section>
+}
