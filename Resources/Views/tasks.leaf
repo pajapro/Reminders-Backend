@@ -3,7 +3,7 @@
 #export("body") {
 	<div class="row">
 		<div class="u-full-width">
-			<h1>Tasks:</h1>
+			<h1>#(lists.title):</h1>
 		</div>
 	</div>
 
@@ -16,4 +16,38 @@
 			</div>
 		}
 	</div>
+
+	<div class="row">
+		<div class="u-full-width">
+			<h2>Create a new task:</h2>
+		</div>
+	</div>
+
+	<form action="/tasks" method="post">
+		<div class="row">
+			<div class="six columns">
+				<label>Title</label>
+				<input class="u-full-width" type="text" placeholder="Wash dishes" name="title">
+			</div>
+			<div class="three columns">
+				<label>Priority</label>
+				<select class="u-full-width" name="priority">
+					<option value="none">None</option>
+					<option value="high">High</option>
+					<option value="medium">Medium</option>
+					<option value="low">Low</option>
+				</select>
+			</div>
+			<div class="three columns">
+				<label>Due date timestamp</label>
+				<input class="u-full-width" type="text" placeholder="1518369921" name="due_date">
+			</div>
+		</div>
+		<div class="row">
+			<div class="four columns">
+				<input class="button-primary" type="submit" value="Create">
+				<input type="hidden" name="list_id" value="#(lists.id)">
+			</div>
+		</div>
+	</form>
 }
