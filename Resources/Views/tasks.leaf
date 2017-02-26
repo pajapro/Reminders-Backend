@@ -9,31 +9,33 @@
 
 	<!-- LIST TASKS -->
 	<div>
-		#loop(tasks, "task") {
-			<div class="row">
-				<div class="four columns">
-					<h5><span>#(task.title)</span></h5>
-				</div>
-				<div class="one columns">
-					<p>#(task.priority)</p>
-				</div>
-				<div class="three columns">
-					<p>#(task.due_date)</p>
-				</div>
-				<div class="two columns">
-					<form action="/tasks/#(task.id)/delete" method="post">
-						<input type="submit" value="Delete">
-					</form>
-				</div>
-				<div class="two columns">
-					<form action="" method="post">
-						<input class="button-primary" type="submit" value="Complete">
-					</form>
-				</div>
-			</div>
-			
-			<!-- TODO: add task completed checkbox -->
-		}
+		<table class="u-full-width">
+			<thead>
+				<tr>
+					<th>Task</th>
+					<th>Priority</th>
+					<th>Due date</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				#loop(tasks, "task") {
+					<tr>
+						<td>#(task.title)</td>
+						<td>#(task.priority)</td>
+						<td>#(task.due_date)</td>
+						<td>
+							<form action="/tasks/#(task.id)/delete" method="post">
+								<input type="submit" value="Delete">
+							</form>
+							<form action="" method="post">
+								<input class="button-primary" type="submit" value="Complete">
+							</form>
+						</td>
+					 </tr>
+				}
+			</tbody>
+		</table>
 	</div>
 
 	<!-- TASK CREATION -->
