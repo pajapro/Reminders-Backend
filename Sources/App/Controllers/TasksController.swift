@@ -47,7 +47,13 @@ final class TasksController {
 		
 		task = Task(title: taskTitle, priority: taskPriority, dueDate: taskDueDate, listId: Node(listId))
 		try task.save()
-		return try task.makeJSON()
+		
+		// Return JSON for newly created list or redirect to HTML page (GET /tasks)
+		if request.headers[HeaderKey.contentType] == Identifiers.json {
+			return try task.makeJSON()
+		} else {
+			return Response(redirect: "/\(List.entity)/\(listId)/\(Task.entity)")
+		}
 	}
 	
 	/// Retrieve all tasks or those matching the provided query
