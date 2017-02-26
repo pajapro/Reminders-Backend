@@ -21,7 +21,7 @@ final class UtilityController {
 	
 	/// Retrieve root
 	func retrieveRoot(for request: Request) throws -> ResponseRepresentable {
-		return try JSON(node : ["message": "More awesomeness coming soon..."])
+		return try drop.view.make("index")
 	}
 	
 	/// Retrieve the database version
