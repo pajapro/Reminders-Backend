@@ -19,4 +19,21 @@
 			</div>
 		}
 	</div>
+
+	<div class="row">
+		<div class="u-full-width">
+			<h2>Create a new list:</h2>
+		</div>
+	</div>
+
+	<form action="/lists" method="post">
+		<div class="row">
+			<div class="eight columns">
+				<input class="u-full-width" type="text" placeholder="Title" name="title">
+			</div>
+			<div class="four columns">
+				<input class="button-primary" type="submit" value="Create">
+			</div>
+		</div>
+	</form>
 }

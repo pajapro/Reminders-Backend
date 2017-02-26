@@ -32,7 +32,13 @@ final class ListsController {
 		
 		var list = List(title: listTitle)
 		try list.save()
-		return try list.makeJSON()
+		
+		// Return JSON for newly created list or HTML page with all lists
+		if request.headers[HeaderKey.contentType] == Identifiers.json {
+			return try list.makeJSON()
+		} else {
+			return try drop.view.make(List.entity, Node(node: [List.entity: List.all().makeJSON()]))
+		}
 	}
 	
 	/// Retrieve all lists or those matching the provided query
