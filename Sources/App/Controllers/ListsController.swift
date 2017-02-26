@@ -75,9 +75,14 @@ final class ListsController {
 			throw Abort.notFound
 		}
 		
-		let tasks = try list.tasks().all()
+		let jsonResponse = try list.tasks().all().makeJSON()
 		
-		return try tasks.makeJSON()
+		// Return JSON otherwise HTML page
+		if request.headers[HeaderKey.contentType] == Identifiers.json {
+			return jsonResponse
+		} else {
+			return try drop.view.make(Task.entity, Node(node: [Task.entity: jsonResponse]))
+		}
 	}
 	
 	/// Update a list
