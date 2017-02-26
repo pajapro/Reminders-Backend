@@ -84,7 +84,8 @@ final class ListsController {
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return jsonResponse
 		} else {
-			return try drop.view.make(Task.entity, Node(node: [Task.entity: jsonResponse]))
+			// For HTML response send Task JSONs as well as List JSON 
+			return try drop.view.make(Task.entity, Node(node: [List.entity: list.makeJSON(), Task.entity: jsonResponse]))
 		}
 	}
 	
