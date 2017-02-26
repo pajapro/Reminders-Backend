@@ -72,7 +72,7 @@ final class ListsController {
 		return try list.makeJSON()
 	}
 	
-	/// Retrieve all task associated with list
+	/// Retrieve all tasks associated with list
 	func retrieveTasks(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		guard let list = try List.find(listId) else {
 			throw Abort.notFound
@@ -84,7 +84,7 @@ final class ListsController {
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return jsonResponse
 		} else {
-			// For HTML response send Task JSONs as well as List JSON 
+			// For HTML response send Task JSONs as well as List JSON
 			return try drop.view.make(Task.entity, Node(node: [List.entity: list.makeJSON(), Task.entity: jsonResponse]))
 		}
 	}

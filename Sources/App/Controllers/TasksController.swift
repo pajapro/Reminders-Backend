@@ -21,6 +21,9 @@ final class TasksController {
 		tasks.get(Int.self, handler: retrieve)
 		tasks.put(Int.self, handler: update)
 		tasks.delete(Int.self, handler: delete)
+		
+		// not-really RESTful endpoint to perform DELETE operation without adding extra JS into FE
+		tasks.post(Int.self, "delete", handler: delete)
 	}
 	
 	/// Create a new task
@@ -120,6 +123,16 @@ final class TasksController {
 		}
 		
 		try task.delete()
-		return Response(status: .ok)
+		
+		// Return JSON for newly created list or redirect to HTML page (GET /lists)
+		if request.headers[HeaderKey.contentType] == Identifiers.json {
+			return Response(status: .ok)
+		} else {
+			if let parentId = task.listId?.int {
+				return Response(redirect: "/\(List.entity)/\(parentId)/\(Task.entity)")
+			} else {
+				return Response(redirect: "/\(List.entity)")
+			}
+		}
 	}
 }

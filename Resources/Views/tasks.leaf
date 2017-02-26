@@ -7,16 +7,36 @@
 		</div>
 	</div>
 
+	<!-- LIST TASKS -->
 	<div>
 		#loop(tasks, "task") {
 			<div class="row">
-				<div class="eight columns">
+				<div class="four columns">
 					<h5><span>#(task.title)</span></h5>
 				</div>
+				<div class="one columns">
+					<p>#(task.priority)</p>
+				</div>
+				<div class="three columns">
+					<p>#(task.due_date)</p>
+				</div>
+				<div class="two columns">
+					<form action="/tasks/#(task.id)/delete" method="post">
+						<input type="submit" value="Delete">
+					</form>
+				</div>
+				<div class="two columns">
+					<form action="" method="post">
+						<input class="button-primary" type="submit" value="Complete">
+					</form>
+				</div>
 			</div>
+			
+			<!-- TODO: add task completed checkbox -->
 		}
 	</div>
 
+	<!-- TASK CREATION -->
 	<div class="row">
 		<div class="u-full-width">
 			<h2>Create a new task:</h2>
@@ -39,7 +59,7 @@
 				</select>
 			</div>
 			<div class="three columns">
-				<label>Due date timestamp</label>
+				<label>Due date timestamp (WIP)</label>
 				<input class="u-full-width" type="text" placeholder="1518369921" name="due_date">
 			</div>
 		</div>

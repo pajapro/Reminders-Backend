@@ -11,13 +11,13 @@
 		#loop(lists, "list") {
 			<div class="row">
 				<div class="eight columns">
-					<h5><a href="lists/#(list.id)/tasks">#(list.title)</a></h5>
+					<h5><a href="/lists/#(list.id)/tasks">#(list.title)</a></h5>
 				</div>
 				<div class="two columns">
 					<p><span>completed #(list.completed_task_count)/#(list.task_count)<span></p>
 				</div>
 				<div class="two columns">
-					<form action="lists/#(list.id)/delete" method="post">
+					<form action="/lists/#(list.id)/delete" method="post">
 						<input type="submit" value="Delete">
 					</form>
 				</div>
