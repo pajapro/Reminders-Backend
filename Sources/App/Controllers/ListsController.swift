@@ -22,6 +22,9 @@ final class ListsController {
 		lists.get(Int.self, Task.entity, handler: retrieveTasks)
 		lists.put(Int.self, handler: update)
 		lists.delete(Int.self, handler: delete)
+		
+		// not-really RESTful endpoint to perform DELETE operation without adding extra JS into FE
+		lists.post(Int.self, "delete", handler: delete)
 	}
 	
 	/// Create a new list
@@ -37,7 +40,7 @@ final class ListsController {
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return try list.makeJSON()
 		} else {
-			return Response(redirect: List.entity)
+			return Response(redirect: "/\(List.entity)")
 		}
 	}
 	
@@ -106,6 +109,12 @@ final class ListsController {
 		}
 		
 		try list.delete()
-		return Response(status: .ok)
+		
+		// Return JSON for newly created list or redirect to HTML page (GET /lists)
+		if request.headers[HeaderKey.contentType] == Identifiers.json {
+			return Response(status: .ok)
+		} else {
+			return Response(redirect: "/\(List.entity)")
+		}
 	}
 }
