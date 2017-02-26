@@ -33,11 +33,11 @@ final class ListsController {
 		var list = List(title: listTitle)
 		try list.save()
 		
-		// Return JSON for newly created list or HTML page with all lists
+		// Return JSON for newly created list or redirect to HTML page (GET /lists)
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return try list.makeJSON()
 		} else {
-			return try drop.view.make(List.entity, Node(node: [List.entity: List.all().makeJSON()]))
+			return Response(redirect: List.entity)
 		}
 	}
 	
@@ -52,7 +52,7 @@ final class ListsController {
 		}
 		
 		
-		// Return JSON otherwise HTML page
+		// Return JSON otherwise HTML page with Lists
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return jsonResponse
 		} else {
@@ -77,7 +77,7 @@ final class ListsController {
 		
 		let jsonResponse = try list.tasks().all().makeJSON()
 		
-		// Return JSON otherwise HTML page
+		// Return JSON otherwise HTML page with Tasks
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return jsonResponse
 		} else {
