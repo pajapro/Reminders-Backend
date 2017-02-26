@@ -121,7 +121,8 @@ extension Task: JSONRepresentable {
 				Identifiers.priority: self.priority.rawValue,
 				Identifiers.dueDate: DateFormatter.configuredDateFormatter().string(from: unwrappedDueDate),
 				Identifiers.creationDate: DateFormatter.configuredDateFormatter().string(from: self.creationDate),
-				Identifiers.isDone: self.isDone
+				Identifiers.isDone: self.isDone,
+				Identifiers.listId: self.listId
 				// intetionally leave out listId
 			])
 		} else {
@@ -130,7 +131,8 @@ extension Task: JSONRepresentable {
 				Identifiers.title: self.title,
 				Identifiers.priority: self.priority.rawValue,
 				Identifiers.creationDate: DateFormatter.configuredDateFormatter().string(from: self.creationDate),
-				Identifiers.isDone: self.isDone
+				Identifiers.isDone: self.isDone,
+				Identifiers.listId: self.listId
 				// intetionally leave out listId
 			])
 		}
