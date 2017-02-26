@@ -111,6 +111,10 @@ final class ListsController {
 		
 		try list.delete()
 		
+		// Delete associated tasks with this list
+		let associatedTasks = try Task.query().filter(Identifiers.listId, .equals, listId).all()
+		try associatedTasks.forEach { try $0.delete() }
+		
 		// Return JSON for newly created list or redirect to HTML page (GET /lists)
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return Response(status: .ok)
