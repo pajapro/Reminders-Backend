@@ -16,6 +16,9 @@ do {
 	print("Error adding provider: \(error)")
 }
 
+// Disable caching in order to avoid recompling the app for HTML & CSS tweaks
+(drop.view as? LeafRenderer)?.stem.cache = nil
+
 // Add lists routes
 let listsController = ListsController()
 listsController.addRoutes(drop: drop)
