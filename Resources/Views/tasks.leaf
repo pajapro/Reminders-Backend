@@ -70,4 +70,22 @@
 			</div>
 		</div>
 	</form>
+
+	<!-- LIST DELETION -->
+	<div class="row">
+		<div class="u-full-width">
+			<h2>Delete list:</h2>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="eight columns">
+			<p>Deleting #(lists.title) list, will remove all associated tasks!</p>
+		</div>
+		<div class="four columns">
+			<form action="/lists/#(lists.id)/delete" method="post">
+				<input type="submit" value="Delete list">
+			</form>
+		</div>
+	</div>
 }
