@@ -21,16 +21,25 @@
 			<tbody>
 				#loop(tasks, "task") {
 					<tr>
-						<td>#(task.title)</td>
+						#if(task.is_done) {
+							<td><strike>#(task.title)</strike></td>
+						} ##else() {
+							<td>#(task.title)</td>
+						}
 						<td>#(task.priority)</td>
 						<td>#(task.due_date)</td>
 						<td>
 							<form action="/tasks/#(task.id)/delete" method="post">
 								<input type="submit" value="Delete">
 							</form>
-							<form action="" method="post">
-								<input class="button-primary" type="submit" value="Complete">
-							</form>
+							
+							#if(task.is_done) {
+								<!-- DO NOT SHOW ANY BUTTON -->
+							} ##else() {
+								<form action="" method="post">
+									<input class="button-primary" type="submit" value="Complete">
+								</form>
+							}
 						</td>
 					 </tr>
 				}
