@@ -34,11 +34,11 @@ public struct User: Model {
 	
 	// MARK: - Initializers
 	
-	public init(name: String, email: String, password: String) {
+	public init(name: String, email: String, rawPassword: String) {
 		self.id = nil
 		self.name = name
 		self.email = email
-		self.password = password
+		self.password = BCrypt.hash(password: rawPassword)	// hash given password
 	}
 }
 
