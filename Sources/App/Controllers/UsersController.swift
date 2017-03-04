@@ -18,6 +18,7 @@ final class UsersController {
 		
 		users.get("registration", handler: { _ in return try drop.view.make("registration") })	// Shortcut to retrieve a registration form
 		users.post(handler: create)
+		users.get("logout", handler: logout)
 	}
 	
 	/// Create a new user
@@ -47,5 +48,10 @@ final class UsersController {
 		} else {
 			return Response(redirect: "/")
 		}
+	}
+	
+	func logout(for request: Request) throws -> ResponseRepresentable {
+		try request.auth.logout()
+		return Response(redirect: "/")
 	}
 }
