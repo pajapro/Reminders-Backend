@@ -24,11 +24,15 @@ public struct List: Model {
 	/// List title
 	public var title: String
 	
+	/// Identifier of a User (parent) it belongs to
+	public var userId: Node?
+	
 	// MARK: - Initializers
 	
-	public init(title: String) {
+	public init(title: String, userId: Node? = nil) {
 		self.id = nil
 		self.title = title
+		self.userId = userId
 	}
 }
 
@@ -40,6 +44,7 @@ extension List: NodeInitializable {
 	public init(node: Node, in context: Context) throws {
 		self.id = try node.extract(Identifiers.id)
 		self.title = try node.extract(Identifiers.title)
+		self.userId = try node.extract(Identifiers.userId)
 	}
 }
 
@@ -51,7 +56,8 @@ extension List: NodeRepresentable {
 	public func makeNode(context: Context) throws -> Node {
 		let node = try Node(node: [
 				Identifiers.id: self.id,
-				Identifiers.title: self.title
+				Identifiers.title: self.title,
+				Identifiers.userId: self.userId
 			])
 		
 		return node
@@ -73,12 +79,14 @@ extension List: JSONRepresentable {
 				Identifiers.id: self.id,
 				Identifiers.title: self.title,
 				"task_count": allTasksCount,
-				"completed_task_count": completedTasksCount
+				"completed_task_count": completedTasksCount,
+				Identifiers.userId: self.userId
 			])
 		} catch {
 			result = try JSON(node: [
 				Identifiers.id: self.id,
-				Identifiers.title: self.title
+				Identifiers.title: self.title,
+				Identifiers.userId: self.userId
 			])
 		}
 		
@@ -95,6 +103,7 @@ extension List: Preparation {
 		try database.create(self.entity) { tasks in
 			tasks.id()
 			tasks.string(Identifiers.title)
+			tasks.parent(User.self, optional: false)
 		}
 	}
 	

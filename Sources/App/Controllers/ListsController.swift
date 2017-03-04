@@ -33,7 +33,11 @@ final class ListsController {
 			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.title) value")
 		}
 		
-		var list = List(title: listTitle)
+		guard let userId = request.data[Identifiers.userId]?.int else {
+			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.userId) value")
+		}
+		
+		var list = List(title: listTitle, userId: Node(userId))
 		try list.save()
 		
 		// Return JSON for newly created list or redirect to HTML page (GET /lists)

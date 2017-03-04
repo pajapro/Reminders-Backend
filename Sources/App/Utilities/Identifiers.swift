@@ -20,9 +20,11 @@ struct Identifiers {
 	static let creationDate	= "creation_date"
 	static let isDone		= "is_done"
 	static let listId		= "list_id"
+	
 	static let name			= "name"
 	static let email		= "email"
 	static let password		= "password"
+	static let userId		= "user_id"
 	
 	// HTTP Content-Type
 	static let json = "application/json"
