@@ -10,11 +10,12 @@ import Vapor
 import VaporPostgreSQL
 import HTTP
 import Foundation
+import Auth
 
 final class ListsController {
 	
-	func addRoutes(drop: Droplet) {
-		let lists = drop.grouped(List.entity)
+	func addRoutes(to drop: Droplet, with middleware: Middleware) {
+		let lists = drop.grouped(middleware).grouped(List.entity)
 		
 		lists.post(handler: create)
 		lists.get(handler: retrieveAll)

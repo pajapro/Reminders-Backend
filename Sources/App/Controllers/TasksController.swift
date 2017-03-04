@@ -13,8 +13,8 @@ import Foundation
 
 final class TasksController {
 	
-	func addRoutes(drop: Droplet) {
-		let tasks = drop.grouped(Task.entity)
+	func addRoutes(drop: Droplet, with middleware: Middleware) {
+		let tasks = drop.grouped(middleware).grouped(Task.entity)
 		
 		tasks.post(handler: create)
 		tasks.get(handler: retrieveAll)

@@ -2,6 +2,7 @@ import Vapor
 import Foundation
 import VaporPostgreSQL
 import HTTP
+import Auth
 
 let drop = Droplet()
 
@@ -9,6 +10,9 @@ let drop = Droplet()
 drop.preparations.append(List.self)
 drop.preparations.append(Task.self)
 drop.preparations.append(User.self)
+
+// Add authentication middleware
+drop.middleware.append(AuthMiddleware(user: User.self))
 
 // Connect to PostgreSQL DB
 do {
@@ -20,19 +24,22 @@ do {
 // Disable caching in order to avoid recompling the app for HTML & CSS tweaks
 (drop.view as? LeafRenderer)?.stem.cache = nil
 
-// Add lists routes
+
+let protectMiddleware = ProtectMiddleware(error: Abort.custom(status: .forbidden, message: "Invalid credentials."))
+
+// Add (protected) lists routes
 let listsController = ListsController()
-listsController.addRoutes(drop: drop)
+listsController.addRoutes(to: drop, with: protectMiddleware)
 
-// Add tasks routes
+// Add (protected) tasks routes
 let tasksController = TasksController()
-tasksController.addRoutes(drop: drop)
+tasksController.addRoutes(drop: drop, with: protectMiddleware)
 
-// Add utility routes
+// Add (unprotected) utility routes
 let utilityController = UtilityController()
 utilityController.addRoutes(drop: drop)
 
-// Add users routes
+// Add (unprotected) users routes
 let usersController = UsersController()
 usersController.addRoutes(drop: drop)
 
