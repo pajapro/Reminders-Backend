@@ -32,8 +32,14 @@ final class UsersController {
 			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.password) value")
 		}
 
-		var user = User(name: name.value, email: email.value, password: password)
-		try user.save()
+		var user = User(name: name.value, email: email.value, rawPassword: password)
+		
+		// Check if user with the given email already exists
+		if try User.query().filter(Identifiers.email, user.email).first() == nil {
+			try user.save()
+		} else {
+			throw Abort.custom(status: .badRequest, message: "User with email \(user.email) already exists")
+		}		
 	
 		// Return JSON for newly created user or redirect to HTML page (GET /lists)
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
