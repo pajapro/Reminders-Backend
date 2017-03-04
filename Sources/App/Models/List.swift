@@ -9,6 +9,7 @@
 import Foundation
 import Vapor
 import Fluent
+import Auth
 
 /// Struct holding information about a list of tasks.
 public struct List: Model {
@@ -113,9 +114,17 @@ extension List: Preparation {
 	}
 }
 
-// MARK: - Convenience method to fetch associated tasks
+// MARK: - Convenience methods
 
 extension List {
+	
+	static func lists(for user: Auth.User) throws -> Fluent.Query<List> {
+		return try List.query().filter(Identifiers.userId, user.uniqueID)
+	}
+	
+	static func list(for user: Auth.User, with listId: Int) throws -> List? {
+		return try List.lists(for: user).filter(Identifiers.id, listId).first()
+	}
 	
 	func tasks() throws -> Children<Task> {
 		return children()
