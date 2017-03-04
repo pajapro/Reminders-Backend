@@ -4,6 +4,7 @@
 	<div class="row">
 		<div class="u-full-width">
 			<h1>#(lists.title):</h1>
+			<p><a href="/lists">⬅︎ Back</a></p>
 		</div>
 	</div>
 
@@ -31,10 +32,6 @@
 							<td>#(task.due_date)</td>
 						}
 						<td>
-							<form action="/tasks/#(task.id)/delete" method="post">
-								<input type="submit" value="Delete">
-							</form>
-							
 							#if(task.is_done) {
 								<form action="/tasks/#(task.id)/update?is_done=false" method="post">
 									<input class="button-primary" type="submit" value="Incomplete">
@@ -44,6 +41,9 @@
 									<input class="button-primary" type="submit" value="Complete">
 								</form>
 							}
+							<form action="/tasks/#(task.id)/delete" method="post">
+								<input type="submit" value="Delete">
+							</form>
 						</td>
 					 </tr>
 				}
@@ -103,4 +103,5 @@
 			</form>
 		</div>
 	</div>
+
 }
