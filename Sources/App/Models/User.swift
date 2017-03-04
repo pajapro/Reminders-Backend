@@ -72,6 +72,17 @@ extension User: NodeRepresentable {
 	}
 }
 
+
+// MARK: - JSONRepresentable protocol
+
+extension User: JSONRepresentable {
+	
+	/// Converts model into JSON
+	public func makeJSON() throws -> JSON {
+		return try JSON(node: [Identifiers.id: self.id, Identifiers.name: self.name, Identifiers.email: self.email])
+	}
+}
+
 // MARK: - Preparation protocol
 
 extension User: Preparation {
