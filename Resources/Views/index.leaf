@@ -21,17 +21,20 @@
 			</div>
 		</div>
 
-		<div class="row">
-			<div class="u-full-width">
-				<a class="button button-primary" href="/lists">Get started</a>
+		<form action="/users/login" method="post">
+			<div class="row">
+				<input type="text" placeholder="Email" name="email">
 			</div>
-		</div>
-
-		<div class="row">
-			<div class="u-full-width">
-				<p><a href="users/registration">Not a user yet?</a></p>
+			<div class="row">
+				<input type="password" placeholder="Password" name="password">
 			</div>
-		</div>
+			<div class="row">
+				<input class="button-primary" type="submit" value="Login">
+			</div>
+			<div class="row">
+				<a href="users/registration">Not a user yet?</a>
+			</div>
+		</form>
 
 		<div class="row">
 			<div class="u-full-width">
