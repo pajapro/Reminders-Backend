@@ -8,6 +8,7 @@ let drop = Droplet()
 // Invoke `prepare` function to create corresponding tables
 drop.preparations.append(List.self)
 drop.preparations.append(Task.self)
+drop.preparations.append(User.self)
 
 // Connect to PostgreSQL DB
 do {
