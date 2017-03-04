@@ -34,11 +34,8 @@ final class ListsController {
 			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.title) value")
 		}
 		
-		guard let userId = request.data[Identifiers.userId]?.int else {
-			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.userId) value")
-		}
-		
-		var list = List(title: listTitle, userId: Node(userId))
+		let authenticatedUser = try request.auth.user()
+		var list = List(title: listTitle, userId: authenticatedUser.id)
 		try list.save()
 		
 		// Return JSON for newly created list or redirect to HTML page (GET /lists)
@@ -51,14 +48,14 @@ final class ListsController {
 	
 	/// Retrieve all lists or those matching the provided query
 	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
+		let authenticatedUser = try request.auth.user()
 		let jsonResponse: JSON
-		if let listTitle = request.data[Identifiers.title]?.string {
-			let foundLists = try List.query().filter(Identifiers.title, contains: listTitle).all()
-			jsonResponse = try foundLists.makeJSON()
-		} else {
-			jsonResponse = try List.all().makeJSON()
-		}
 		
+		if let listTitle = request.data[Identifiers.title]?.string {
+			jsonResponse = try List.lists(for: authenticatedUser).filter(Identifiers.title, contains: listTitle).all().makeJSON()
+		} else {
+			jsonResponse = try List.lists(for: authenticatedUser).all().makeJSON()
+		}
 		
 		// Return JSON otherwise HTML page with Lists
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
@@ -70,7 +67,9 @@ final class ListsController {
 	
 	/// Retrieve a list
 	func retrieve(for request: Request, with listId: Int) throws -> ResponseRepresentable {
-		guard let list = try List.find(listId) else {
+		let authenticatedUser = try request.auth.user()
+		
+		guard let list = try List.list(for: authenticatedUser, with: listId) else {
 			throw Abort.notFound
 		}
 		
@@ -79,7 +78,9 @@ final class ListsController {
 	
 	/// Retrieve all tasks associated with list
 	func retrieveTasks(for request: Request, with listId: Int) throws -> ResponseRepresentable {
-		guard let list = try List.find(listId) else {
+		let authenticatedUser = try request.auth.user()
+		
+		guard let list = try List.list(for: authenticatedUser, with: listId) else {
 			throw Abort.notFound
 		}
 		
@@ -96,7 +97,9 @@ final class ListsController {
 	
 	/// Update a list
 	func update(for request: Request, with listId: Int) throws -> ResponseRepresentable {
-		guard var list = try List.find(listId) else {
+		let authenticatedUser = try request.auth.user()
+		
+		guard var list = try List.list(for: authenticatedUser, with: listId) else {
 			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
 		}
 		
@@ -110,7 +113,9 @@ final class ListsController {
 	
 	/// Delete a list
 	func delete(for request: Request, with listId: Int) throws -> ResponseRepresentable {
-		guard let list = try List.find(listId) else {
+		let authenticatedUser = try request.auth.user()
+		
+		guard let list = try List.list(for: authenticatedUser, with: listId) else {
 			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
 		}
 		
