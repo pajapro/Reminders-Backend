@@ -129,7 +129,7 @@ extension User: Auth.User {
 		case let credentials as Identifier:
 			user = try User.find(credentials.id)
 			
-		// TODO: add support for access token
+		// TODO: add support for `AccessToken`
 			
 		default:
 			throw UnsupportedCredentialsError()

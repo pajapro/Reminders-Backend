@@ -10,6 +10,7 @@ import Vapor
 import VaporPostgreSQL
 import HTTP
 import Foundation
+import Turnstile
 
 final class UsersController {
 	
@@ -18,6 +19,7 @@ final class UsersController {
 		
 		users.get("registration", handler: { _ in return try drop.view.make("registration") })	// Shortcut to retrieve a registration form
 		users.post(handler: create)
+		users.post("login", handler: login)
 		users.get("logout", handler: logout)
 	}
 	
@@ -54,6 +56,29 @@ final class UsersController {
 		}
 	}
 	
+	/// Login a user
+	func login(for request: Request) throws -> ResponseRepresentable {
+		guard let email = request.data[Identifiers.email]?.string else {
+			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.email) value")
+		}
+		
+		guard let password = request.data[Identifiers.password]?.string else {
+			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.password) value")
+		}
+		
+		let credentials = UsernamePassword(username: email, password: password)
+		
+		do {
+			try request.auth.login(credentials)	// calls the `authenticate` method of User type under the hood
+		} catch let error as TurnstileError {
+			return error.description
+		}
+		
+		// Return JSON for newly created user or redirect to HTML page (GET /lists)
+		if request.headers[HeaderKey.contentType] == Identifiers.json {
+			return Response(status: .ok)	// TODO: request.user to return token?
+		} else {
+			return Response(redirect: "/lists")
 		}
 	}
 	
