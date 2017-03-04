@@ -16,11 +16,12 @@ final class UsersController {
 	func addRoutes(drop: Droplet) {
 		let users = drop.grouped(User.entity)
 		
-		users.post(handler: register)
+		users.get("registration", handler: { _ in return try drop.view.make("registration") })	// Shortcut to retrieve a registration form
+		users.post(handler: create)
 	}
 	
-	/// Register a new user
-	func register(for request: Request) throws -> ResponseRepresentable {
+	/// Create a new user
+	func create(for request: Request) throws -> ResponseRepresentable {
 		
 		// Validate name and email input
 		let name: Valid<OnlyAlphanumeric> = try request.data[Identifiers.name].validated()
@@ -41,5 +42,4 @@ final class UsersController {
 			return Response(redirect: "/")
 		}
 	}
-
 }

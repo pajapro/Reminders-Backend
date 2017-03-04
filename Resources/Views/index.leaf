@@ -29,6 +29,12 @@
 
 		<div class="row">
 			<div class="u-full-width">
+				<p><a href="users/registration">Not a user yet?</a></p>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="u-full-width">
 				<p>Copyright © 2017 <a href="http://prochazka.io" target="_blank">Pavel Procházka</a></p>
 			</div>
 		</div>
