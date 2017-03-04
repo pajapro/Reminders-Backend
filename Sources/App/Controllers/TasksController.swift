@@ -22,8 +22,11 @@ final class TasksController {
 		tasks.put(Int.self, handler: update)
 		tasks.delete(Int.self, handler: delete)
 		
-		// not-really RESTful endpoint to perform DELETE operation without adding extra JS into FE
+		// HACK to perform DELETE operation on POST request in order to avoid extra JS in FE
 		tasks.post(Int.self, "delete", handler: delete)
+		
+		// HACK to perform PUT operation on POST request in order to avoid extra JS in FE
+		tasks.post(Int.self, "update", handler: complete)
 	}
 	
 	/// Create a new task
@@ -133,6 +136,27 @@ final class TasksController {
 			} else {
 				return Response(redirect: "/\(List.entity)")
 			}
+		}
+	}
+	
+	/// Complete a task (HACK in order to avoid adding JS into frontend)
+	func complete(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
+		guard var task = try Task.find(taskID) else {
+			throw Abort.custom(status: .notFound, message: "Task with \(Identifiers.id): \(taskID) could not be found")
+		}
+		
+		guard let isDone = request.query?[Identifiers.isDone]?.bool else {
+			throw Abort.custom(status: .badRequest, message: "Invalid value for \(Identifiers.isDone) query")
+		}
+		
+		task.isDone = isDone
+		
+		try task.save()
+		
+		if let parentId = task.listId?.int {
+			return Response(redirect: "/\(List.entity)/\(parentId)/\(Task.entity)")
+		} else {
+			return Response(redirect: "/\(List.entity)")
 		}
 	}
 }

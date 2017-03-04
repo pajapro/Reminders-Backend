@@ -7,7 +7,7 @@
 		</div>
 	</div>
 
-	<!-- LIST TASKS -->
+	<!-- LIST of TASKS -->
 	<div>
 		<table class="u-full-width">
 			<thead>
@@ -34,9 +34,11 @@
 							</form>
 							
 							#if(task.is_done) {
-								<!-- DO NOT SHOW ANY BUTTON -->
+								<form action="/tasks/#(task.id)/update?is_done=false" method="post">
+									<input class="button-primary" type="submit" value="Incomplete">
+								</form>
 							} ##else() {
-								<form action="" method="post">
+								<form action="/tasks/#(task.id)/update?is_done=true" method="post">
 									<input class="button-primary" type="submit" value="Complete">
 								</form>
 							}
@@ -47,7 +49,7 @@
 		</table>
 	</div>
 
-	<!-- TASK CREATION -->
+	<!-- TASK CREATION FORM -->
 	<div class="row">
 		<div class="u-full-width">
 			<h2>Create a new task:</h2>
@@ -82,7 +84,7 @@
 		</div>
 	</form>
 
-	<!-- LIST DELETION -->
+	<!-- LIST DELETION FORM -->
 	<div class="row">
 		<div class="u-full-width">
 			<h2>Delete list:</h2>
