@@ -11,6 +11,7 @@ import Vapor
 import Fluent
 import Turnstile
 import TurnstileCrypto
+import Auth
 
 /// Struct holding information about a user
 public struct User: Model {
@@ -100,6 +101,49 @@ extension User: Preparation {
 	/// The revert method should undo any actions caused by the prepare method.
 	public static func revert(_ database: Database) throws {
 		try database.delete(self.entity)	// only called when manually executed via CLI
+	}
+}
+
+// MARK: User protocol
+
+// Note that the name of our class and the protocol are the same. This is why we use the `Auth.` prefix to differentiate the protocol from the Auth module from our `User` class.
+extension User: Auth.User {
+	
+	// A user is authenticated when a set of credentials is passed to the static `authenticate` method and the *matching* user is returned.
+	public static func authenticate(credentials: Credentials) throws -> Auth.User {
+		var user: User?
+		
+		switch credentials {
+		// First time login
+		case let credentials as UsernamePassword:
+			
+			// Try to find user with matching email (username = email)
+			let fetchedUser = try User.query().filter(Identifiers.email, credentials.username).first()
+			
+			// Verify that the stored password from DB *matches* the hashed password user is authenticating with
+			if let password = fetchedUser?.password, !password.isEmpty, (try? BCrypt.verify(password: credentials.password, matchesHash: password)) == true {
+				user = fetchedUser
+			}
+			
+		// Subsequent API requests
+		case let credentials as Identifier:
+			user = try User.find(credentials.id)
+			
+		// TODO: add support for access token
+			
+		default:
+			throw UnsupportedCredentialsError()
+		}
+		
+		if let unwrappedUser = user {
+			return unwrappedUser
+		} else {
+			throw IncorrectCredentialsError()
+		}
+	}
+	
+	public static func register(credentials: Credentials) throws -> Auth.User {
+		throw Abort.badRequest
 	}
 }
 
