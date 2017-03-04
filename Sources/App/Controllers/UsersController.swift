@@ -35,18 +35,25 @@ final class UsersController {
 
 		var user = User(name: name.value, email: email.value, rawPassword: password)
 		
-		// Check if user with the given email already exists
+		// Check if user with the given email does not already exists
 		if try User.query().filter(Identifiers.email, user.email).first() == nil {
 			try user.save()
 		} else {
-			throw Abort.custom(status: .badRequest, message: "User with email \(user.email) already exists")
-		}		
+			throw AccountTakenError()
+		}
+		
+		// Login the newly created user
+		let credentials = UsernamePassword(username: email.value, password: password)
+		try request.auth.login(credentials)
 	
 		// Return JSON for newly created user or redirect to HTML page (GET /lists)
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return try user.makeJSON()
 		} else {
-			return Response(redirect: "/")
+			return Response(redirect: "/lists")
+		}
+	}
+	
 		}
 	}
 	
