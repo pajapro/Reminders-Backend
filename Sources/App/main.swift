@@ -32,5 +32,9 @@ tasksController.addRoutes(drop: drop)
 let utilityController = UtilityController()
 utilityController.addRoutes(drop: drop)
 
+// Add users routes
+let usersController = UsersController()
+usersController.addRoutes(drop: drop)
+
 // Start Vapor service
 drop.run()
