@@ -40,23 +40,21 @@ final class TasksController {
 		}
 		
 		let authenticatedUser = try request.auth.user()
-		guard let _ = try List.list(for: authenticatedUser, with: listId) else {
-			throw Abort.custom(status: .forbidden, message: "Forbidden to create a task in a list with ID \(listId)")
+		guard let list = try List.list(for: authenticatedUser, with: listId) else {
+			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
 		}
 		
-		var task: Task
 		var taskPriority: Priority = .none
-		var taskDueDate: Date? = nil
-		
 		if let taskPriorityRaw = request.data[Identifiers.priority]?.string, let priority = Priority(rawValue: taskPriorityRaw) {
 			taskPriority = priority
 		}
 		
+		var taskDueDate: Date? = nil
 		if let taskDueDateRaw = request.data[Identifiers.dueDate]?.double {
 			taskDueDate = Date(timeIntervalSince1970: taskDueDateRaw)
 		}
 		
-		task = Task(title: taskTitle, priority: taskPriority, dueDate: taskDueDate, listId: Node(listId))
+		var task = Task(title: taskTitle, priority: taskPriority, dueDate: taskDueDate, listId: list.id)
 		try task.save()
 		
 		// Return JSON for newly created list or redirect to HTML page (GET /tasks)

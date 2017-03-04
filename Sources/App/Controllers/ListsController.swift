@@ -73,7 +73,7 @@ final class ListsController {
 			throw Abort.notFound
 		}
 		
-		return try list.makeJSON()
+		return try list.makeJSON()	// No UI hence not returning a view
 	}
 	
 	/// Retrieve all tasks associated with list
@@ -108,7 +108,7 @@ final class ListsController {
 		}
 		
 		try list.save()
-		return try list.makeJSON()
+		return try list.makeJSON()	// No UI hence not returning a view
 	}
 	
 	/// Delete a list
