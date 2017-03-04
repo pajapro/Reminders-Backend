@@ -23,11 +23,13 @@
 					<tr>
 						#if(task.is_done) {
 							<td><strike>#(task.title)</strike></td>
+							<td><strike>#(task.priority)</strike></td>
+							<td><strike>#(task.due_date)</strike></td>
 						} ##else() {
 							<td>#(task.title)</td>
+							<td>#(task.priority)</td>
+							<td>#(task.due_date)</td>
 						}
-						<td>#(task.priority)</td>
-						<td>#(task.due_date)</td>
 						<td>
 							<form action="/tasks/#(task.id)/delete" method="post">
 								<input type="submit" value="Delete">
