@@ -39,6 +39,11 @@ final class TasksController {
 			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.listId) value")
 		}
 		
+		let authenticatedUser = try request.auth.user()
+		guard let _ = try List.list(for: authenticatedUser, with: listId) else {
+			throw Abort.custom(status: .forbidden, message: "Forbidden to create a task in a list with ID \(listId)")
+		}
+		
 		var task: Task
 		var taskPriority: Priority = .none
 		var taskDueDate: Date? = nil
@@ -62,6 +67,7 @@ final class TasksController {
 		}
 	}
 	
+	// TODO: add authorization layer
 	/// Retrieve all tasks or those matching the provided query
 	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
 		let jsonResponse: JSON
@@ -80,6 +86,7 @@ final class TasksController {
 		}
 	}
 	
+	// TODO: add authorization layer
 	/// Retrieve a task
 	func retrieve(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
 		guard let task = try Task.find(taskID) else {
@@ -89,6 +96,7 @@ final class TasksController {
 		return try task.makeJSON()
 	}
 	
+	// TODO: add authorization layer
 	/// Update a task
 	func update(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
 		guard var task = try Task.find(taskID) else {
@@ -119,6 +127,7 @@ final class TasksController {
 		return try task.makeJSON()
 	}
 	
+	// TODO: add authorization layer
 	/// Delete a task
 	func delete(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
 		guard let task = try Task.find(taskID) else {
@@ -139,6 +148,7 @@ final class TasksController {
 		}
 	}
 	
+	// TODO: add authorization layer
 	/// Complete a task (HACK in order to avoid adding JS into frontend)
 	func complete(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
 		guard var task = try Task.find(taskID) else {
