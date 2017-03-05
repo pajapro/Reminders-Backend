@@ -52,9 +52,9 @@ final class ListsController {
 		let jsonResponse: JSON
 		
 		if let listTitle = request.data[Identifiers.title]?.string {
-			jsonResponse = try List.lists(for: authenticatedUser).filter(Identifiers.title, contains: listTitle).all().makeJSON()
+			jsonResponse = try authenticatedUser.lists().filter(Identifiers.title, contains: listTitle).all().makeJSON()
 		} else {
-			jsonResponse = try List.lists(for: authenticatedUser).all().makeJSON()
+			jsonResponse = try authenticatedUser.lists().all().makeJSON()
 		}
 		
 		// Return JSON otherwise HTML page with Lists
@@ -69,7 +69,7 @@ final class ListsController {
 	func retrieve(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		let authenticatedUser = try request.auth.user()
 		
-		guard let list = try List.list(for: authenticatedUser, with: listId) else {
+		guard let list = try authenticatedUser.list(with: listId) else {
 			throw Abort.notFound
 		}
 		
@@ -80,7 +80,7 @@ final class ListsController {
 	func retrieveTasks(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		let authenticatedUser = try request.auth.user()
 		
-		guard let list = try List.list(for: authenticatedUser, with: listId) else {
+		guard let list = try authenticatedUser.list(with: listId) else {
 			throw Abort.notFound
 		}
 		
@@ -99,7 +99,7 @@ final class ListsController {
 	func update(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		let authenticatedUser = try request.auth.user()
 		
-		guard var list = try List.list(for: authenticatedUser, with: listId) else {
+		guard var list = try authenticatedUser.list(with: listId) else {
 			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
 		}
 		
@@ -115,7 +115,7 @@ final class ListsController {
 	func delete(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		let authenticatedUser = try request.auth.user()
 		
-		guard let list = try List.list(for: authenticatedUser, with: listId) else {
+		guard let list = try authenticatedUser.list(with: listId) else {
 			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
 		}
 		
