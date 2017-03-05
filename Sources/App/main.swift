@@ -14,13 +14,13 @@ drop.preparations.append(User.self)
 // Add authentication middleware
 drop.middleware.append(AuthMiddleware(user: User.self))
 
-// FIXME: add back `AbortMiddleware` 
-print("Middlewares: \(drop.middleware)")
 // Add version middleware
 drop.middleware.append(VersionMiddleware())
 
+// FIXME: add back `AbortMiddleware`
+drop.log.info("Middlewares: \(drop.middleware)")
 drop.middleware.remove(at: 1)
-print("New middlewares: \(drop.middleware)")
+drop.log.info("Middlewares: \(drop.middleware)")
 
 // Create protect middleware to require authentication on certain endpoints
 let protectMiddleware = ProtectMiddleware(error: Abort.custom(status: .forbidden, message: "Invalid credentials."))
