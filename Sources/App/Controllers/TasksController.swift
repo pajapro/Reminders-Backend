@@ -10,6 +10,7 @@ import Vapor
 import VaporPostgreSQL
 import HTTP
 import Foundation
+import Auth
 
 final class TasksController {
 	
@@ -40,9 +41,7 @@ final class TasksController {
 		}
 		
 		let authenticatedUser = try request.auth.user()
-		guard let list = try List.list(for: authenticatedUser, with: listId) else {
-			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
-		}
+		let list = try authenticatedUser.list(with: listId)
 		
 		var taskPriority: Priority = .none
 		if let taskPriorityRaw = request.data[Identifiers.priority]?.string, let priority = Priority(rawValue: taskPriorityRaw) {
@@ -65,15 +64,34 @@ final class TasksController {
 		}
 	}
 	
-	// TODO: add authorization layer
 	/// Retrieve all tasks or those matching the provided query
 	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
+		
+		/// Helper method, which filters out all tasks for which user is not authorized to read
+		func filterOutUnauthorized(tasks: [Task], for request: Request) throws -> [Task] {
+			
+			// Fetch authenticated user's lists
+			let authenticatedUser = try request.auth.user()
+			let authenticatedUserLists = try authenticatedUser.lists().all()
+			
+			// Filter out tasks whose parent list is not accessible for the current user
+			let filteredTasks = try tasks.filter {
+				guard let parentList = try $0.list() else { return false }
+				return authenticatedUserLists.contains(where: { $0 == parentList} )
+			}
+			
+			return filteredTasks
+		}
+		
 		let jsonResponse: JSON
 		if let taskTitle = request.data[Identifiers.title]?.string {
 			let foundTasks = try Task.query().filter(Identifiers.title, contains: taskTitle).all()
-			jsonResponse = try foundTasks.makeJSON()
+			let filteredTasks = try filterOutUnauthorized(tasks: foundTasks, for: request)
+			jsonResponse = try filteredTasks.makeJSON()
 		} else {
-			jsonResponse = try Task.all().makeJSON()
+			let allTasks = try Task.all()
+			let filteredTasks = try filterOutUnauthorized(tasks: allTasks, for: request)
+			jsonResponse = try filteredTasks.makeJSON()
 		}
 		
 		// Return JSON otherwise HTML page
@@ -84,22 +102,16 @@ final class TasksController {
 		}
 	}
 	
-	// TODO: add authorization layer
 	/// Retrieve a task
 	func retrieve(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
-		guard let task = try Task.find(taskID) else {
-			throw Abort.notFound
-		}
+		let task = try self.isUserAuthorizedToModifyTask(with: taskID, within: request)
 		
-		return try task.makeJSON()
+		return try task.makeJSON()		// No UI hence not returning a view
 	}
 	
-	// TODO: add authorization layer
 	/// Update a task
 	func update(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
-		guard var task = try Task.find(taskID) else {
-			throw Abort.custom(status: .notFound, message: "Task with \(Identifiers.id): \(taskID) could not be found")
-		}
+		var task = try self.isUserAuthorizedToModifyTask(with: taskID, within: request)
 		
 		if let taskTitle = request.data[Identifiers.title]?.string {
 			task.title = taskTitle
@@ -122,15 +134,13 @@ final class TasksController {
 		}
 		
 		try task.save()
-		return try task.makeJSON()
+		
+		return try task.makeJSON()	// No UI hence not returning a view
 	}
 	
-	// TODO: add authorization layer
 	/// Delete a task
 	func delete(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
-		guard let task = try Task.find(taskID) else {
-			throw Abort.custom(status: .notFound, message: "Task with \(Identifiers.id): \(taskID) could not be found")
-		}
+		let task = try self.isUserAuthorizedToModifyTask(with: taskID, within: request)
 		
 		try task.delete()
 		
@@ -146,16 +156,13 @@ final class TasksController {
 		}
 	}
 	
-	// TODO: add authorization layer
 	/// Complete a task (HACK in order to avoid adding JS into frontend)
 	func complete(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
-		guard var task = try Task.find(taskID) else {
-			throw Abort.custom(status: .notFound, message: "Task with \(Identifiers.id): \(taskID) could not be found")
-		}
-		
 		guard let isDone = request.query?[Identifiers.isDone]?.bool else {
 			throw Abort.custom(status: .badRequest, message: "Invalid value for \(Identifiers.isDone) query")
 		}
+		
+		var task = try self.isUserAuthorizedToModifyTask(with: taskID, within: request)
 		
 		task.isDone = isDone
 		
@@ -165,6 +172,34 @@ final class TasksController {
 			return Response(redirect: "/\(List.entity)/\(parentId)/\(Task.entity)")
 		} else {
 			return Response(redirect: "/\(List.entity)")
+		}
+	}
+	
+	/**
+	Verifies whether currently logged in user is authorized to modify a task with given task ID
+	- returns: an instance of `Task` user is authorized to modify
+	- throws: 403 error if user is not authorized to modify desired task
+	*/
+	private func isUserAuthorizedToModifyTask(with taskID: Int, within request: Request) throws -> Task {
+		// Find a task
+		guard let task = try Task.find(taskID) else {
+			throw Abort.custom(status: .notFound, message: "Task with \(Identifiers.id): \(taskID) could not be found")
+		}
+		
+		// Find task's parent
+		guard let parentList = try task.list() else {
+			throw Abort.custom(status: .notFound, message: "Parent List for Task with \(Identifiers.id): \(taskID) could not be found")
+		}
+		
+		// Fetch authenticated user's lists
+		let authenticatedUser = try request.auth.user()
+		let authenticatedUserLists = try authenticatedUser.lists().all()
+		
+		// Ensure that a task's list is contained in authenticated user's lists
+		if authenticatedUserLists.contains(where: { $0 == parentList} ) {
+			return task
+		} else {
+			throw Abort.custom(status: .forbidden, message: "User is unauthorized to modify a task with \(Identifiers.id): \(taskID)")
 		}
 	}
 }

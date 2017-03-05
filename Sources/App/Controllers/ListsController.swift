@@ -24,7 +24,7 @@ final class ListsController {
 		lists.put(Int.self, handler: update)
 		lists.delete(Int.self, handler: delete)
 		
-		// not-really RESTful endpoint to perform DELETE operation without adding extra JS into FE
+		// HACK to perform DELETE operation on POST request in order to avoid extra JS in FE
 		lists.post(Int.self, "delete", handler: delete)
 	}
 	
