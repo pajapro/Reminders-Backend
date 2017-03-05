@@ -159,3 +159,13 @@ extension Task: Preparation {
 		try database.delete(self.entity)	// only called when manually executed via CLI
 	}
 }
+
+// MARK: - Convenience methods
+
+extension Task {
+
+	/// Relationship convenience method to fetch a parent entity
+	func list() throws -> List? {
+		return try parent(self.listId).get()
+	}
+}
