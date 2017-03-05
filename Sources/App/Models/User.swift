@@ -147,3 +147,18 @@ extension User: Auth.User {
 	}
 }
 
+// MARK: - Convenience methods
+
+extension Auth.User {
+	
+	/// Relationship convenience method to fetch children entities
+	func lists() throws -> Children<List> {
+		return children()
+	}
+	
+	/// Relationship convenience method to fetch children entities for specific list ID
+	func list(with listId: Int) throws -> List? {
+		return try self.lists().filter(Identifiers.id, listId).first()
+	}
+}
+

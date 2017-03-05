@@ -127,14 +127,6 @@ extension List: Equatable {
 
 extension List {
 	
-	static func lists(for user: Auth.User) throws -> Fluent.Query<List> {
-		return try List.query().filter(Identifiers.userId, user.uniqueID)
-	}
-	
-	static func list(for user: Auth.User, with listId: Int) throws -> List? {
-		return try List.lists(for: user).filter(Identifiers.id, listId).first()
-	}
-	
 	/// Relationship convenience method to fetch children entities
 	func tasks() throws -> Children<Task> {
 		return children()
