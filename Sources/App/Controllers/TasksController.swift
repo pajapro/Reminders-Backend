@@ -32,6 +32,8 @@ final class TasksController {
 	
 	/// Create a new task
 	func create(for request: Request) throws -> ResponseRepresentable {
+		
+		// Required values
 		guard let taskTitle = request.data[Identifiers.title]?.string else {
 			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.title) value")
 		}
@@ -40,9 +42,7 @@ final class TasksController {
 			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.listId) value")
 		}
 		
-		let authenticatedUser = try request.auth.user()
-		let list = try authenticatedUser.list(with: listId)
-		
+		// Optional values
 		var taskPriority: Priority = .none
 		if let taskPriorityRaw = request.data[Identifiers.priority]?.string, let priority = Priority(rawValue: taskPriorityRaw) {
 			taskPriority = priority
@@ -53,6 +53,8 @@ final class TasksController {
 			taskDueDate = Date(timeIntervalSince1970: taskDueDateRaw)
 		}
 		
+		let authenticatedUser = try request.auth.user()
+		let list = try authenticatedUser.list(with: listId)
 		var task = Task(title: taskTitle, priority: taskPriority, dueDate: taskDueDate, listId: list.id)
 		try task.save()
 		
@@ -68,10 +70,9 @@ final class TasksController {
 	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
 		
 		/// Helper method, which filters out all tasks for which user is not authorized to read
-		func filterOutUnauthorized(tasks: [Task], for request: Request) throws -> [Task] {
+		func filterOutUnauthorized(tasks: [Task], for authenticatedUser: Auth.User) throws -> [Task] {
 			
 			// Fetch authenticated user's lists
-			let authenticatedUser = try request.auth.user()
 			let authenticatedUserLists = try authenticatedUser.lists().all()
 			
 			// Filter out tasks whose parent list is not accessible for the current user
@@ -83,14 +84,16 @@ final class TasksController {
 			return filteredTasks
 		}
 		
+		let authenticatedUser = try request.auth.user()
 		let jsonResponse: JSON
+		
 		if let taskTitle = request.data[Identifiers.title]?.string {
 			let foundTasks = try Task.query().filter(Identifiers.title, contains: taskTitle).all()
-			let filteredTasks = try filterOutUnauthorized(tasks: foundTasks, for: request)
+			let filteredTasks = try filterOutUnauthorized(tasks: foundTasks, for: authenticatedUser)
 			jsonResponse = try filteredTasks.makeJSON()
 		} else {
 			let allTasks = try Task.all()
-			let filteredTasks = try filterOutUnauthorized(tasks: allTasks, for: request)
+			let filteredTasks = try filterOutUnauthorized(tasks: allTasks, for: authenticatedUser)
 			jsonResponse = try filteredTasks.makeJSON()
 		}
 		
