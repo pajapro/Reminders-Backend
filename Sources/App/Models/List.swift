@@ -114,6 +114,15 @@ extension List: Preparation {
 	}
 }
 
+// MARK: - Equatable protocol
+
+extension List: Equatable {
+	
+	public static func ==(lhs: List, rhs: List) -> Bool {
+		return lhs.id == rhs.id
+	}
+}
+
 // MARK: - Convenience methods
 
 extension List {
@@ -126,6 +135,7 @@ extension List {
 		return try List.lists(for: user).filter(Identifiers.id, listId).first()
 	}
 	
+	/// Relationship convenience method to fetch children entities
 	func tasks() throws -> Children<Task> {
 		return children()
 	}
