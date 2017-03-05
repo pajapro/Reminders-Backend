@@ -14,6 +14,9 @@ drop.preparations.append(User.self)
 // Add authentication middleware
 drop.middleware.append(AuthMiddleware(user: User.self))
 
+// Create protect middleware to require authentication on certain endpoints
+let protectMiddleware = ProtectMiddleware(error: Abort.custom(status: .forbidden, message: "Invalid credentials."))
+
 // Connect to PostgreSQL DB
 do {
 	try drop.addProvider(VaporPostgreSQL.Provider.self)
@@ -23,9 +26,6 @@ do {
 
 // Disable caching in order to avoid recompling the app for HTML & CSS tweaks
 (drop.view as? LeafRenderer)?.stem.cache = nil
-
-
-let protectMiddleware = ProtectMiddleware(error: Abort.custom(status: .forbidden, message: "Invalid credentials."))
 
 // Add (protected) lists routes
 let listsController = ListsController()
