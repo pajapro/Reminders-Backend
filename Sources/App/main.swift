@@ -16,6 +16,9 @@ drop.middleware.append(AuthMiddleware(user: User.self))
 
 // FIXME: add back `AbortMiddleware` 
 print("Middlewares: \(drop.middleware)")
+// Add version middleware
+drop.middleware.append(VersionMiddleware())
+
 drop.middleware.remove(at: 1)
 print("New middlewares: \(drop.middleware)")
 
