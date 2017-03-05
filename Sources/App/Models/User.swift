@@ -157,8 +157,12 @@ extension Auth.User {
 	}
 	
 	/// Relationship convenience method to fetch children entities for specific list ID
-	func list(with listId: Int) throws -> List? {
-		return try self.lists().filter(Identifiers.id, listId).first()
+	func list(with listId: Int) throws -> List {
+		if let list = try self.lists().filter(Identifiers.id, listId).first() {
+			return list
+		} else {
+			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
+		}
 	}
 }
 

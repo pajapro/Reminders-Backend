@@ -69,9 +69,7 @@ final class ListsController {
 	func retrieve(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		let authenticatedUser = try request.auth.user()
 		
-		guard let list = try authenticatedUser.list(with: listId) else {
-			throw Abort.notFound
-		}
+		let list = try authenticatedUser.list(with: listId)
 		
 		return try list.makeJSON()	// No UI hence not returning a view
 	}
@@ -80,9 +78,7 @@ final class ListsController {
 	func retrieveTasks(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		let authenticatedUser = try request.auth.user()
 		
-		guard let list = try authenticatedUser.list(with: listId) else {
-			throw Abort.notFound
-		}
+		let list = try authenticatedUser.list(with: listId)
 		
 		let jsonResponse = try list.tasks().all().makeJSON()
 		
@@ -99,9 +95,7 @@ final class ListsController {
 	func update(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		let authenticatedUser = try request.auth.user()
 		
-		guard var list = try authenticatedUser.list(with: listId) else {
-			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
-		}
+		var list = try authenticatedUser.list(with: listId)
 		
 		if let listTitle = request.data[Identifiers.title]?.string {
 			list.title = listTitle
@@ -115,14 +109,12 @@ final class ListsController {
 	func delete(for request: Request, with listId: Int) throws -> ResponseRepresentable {
 		let authenticatedUser = try request.auth.user()
 		
-		guard let list = try authenticatedUser.list(with: listId) else {
-			throw Abort.custom(status: .notFound, message: "List with \(Identifiers.id): \(listId) could not be found")
-		}
+		let list = try authenticatedUser.list(with: listId)
 		
 		try list.delete()
 		
 		// Delete associated tasks with this list
-		let associatedTasks = try Task.query().filter(Identifiers.listId, .equals, listId).all()
+		let associatedTasks = try list.tasks().all()
 		try associatedTasks.forEach { try $0.delete() }
 		
 		// Return JSON for newly created list or redirect to HTML page (GET /lists)
