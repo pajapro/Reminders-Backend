@@ -21,7 +21,12 @@ final class UtilityController {
 	
 	/// Retrieve root
 	func retrieveRoot(for request: Request) throws -> ResponseRepresentable {
-		return try drop.view.make("index")
+		do {
+			_ = try request.auth.user()
+			return try drop.view.make("index", Node(node: ["isLoggedIn": true]))
+		} catch {
+			return try drop.view.make("index", Node(node: ["isLoggedIn": false]))
+		}
 	}
 	
 	/// Retrieve the database version

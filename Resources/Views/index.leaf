@@ -21,20 +21,24 @@
 			</div>
 		</div>
 
-		<form action="/users/login" method="post">
+		#if(isLoggedIn) {
+			<a class="button button-primary" href="/lists">See lists</a>
+		} ##else() {
+			<form action="/users/login" method="post">
 			<div class="row">
-				<input type="text" placeholder="Email" name="email">
+			<input type="text" placeholder="Email" name="email">
 			</div>
 			<div class="row">
-				<input type="password" placeholder="Password" name="password">
+			<input type="password" placeholder="Password" name="password">
 			</div>
 			<div class="row">
-				<input class="button-primary" type="submit" value="Login">
+			<input class="button-primary" type="submit" value="Login">
 			</div>
 			<div class="row">
-				<a href="users/registration">Not a user yet?</a>
+			<a href="users/registration">Not a user yet?</a>
 			</div>
-		</form>
+			</form>
+		}
 
 		<div class="row">
 			<div class="u-full-width">
