@@ -20,4 +20,4 @@ After that, execute the following commands:
 This repo does not include an Xcode project. If you want to generate one locally, use `swift package generate-xcodeproj` command or simply `vapor xcode` to generate a new Xcode project for a project.
 
 ## 🌍 See it live
-The application is deployed on https://pajapro-reminders-application.herokuapp.com
+The application is deployed on https://pajapro-reminders-application.herokuapp.com .
