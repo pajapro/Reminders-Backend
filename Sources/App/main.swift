@@ -31,7 +31,9 @@ do {
 
 // Add SwiftyBeaver logging
 let console = ConsoleDestination()  // log to Xcode Console in color
-let sbProvider = SwiftyBeaverProvider(destinations: [console])
+let file = FileDestination()		// log to file in color
+file.logFileURL = URL(fileURLWithPath: "/tmp/VaporLogs.log")
+let sbProvider = SwiftyBeaverProvider(destinations: [console, file])
 drop.addProvider(sbProvider)
 
 // Disable caching in order to avoid recompling the app for HTML & CSS tweaks
