@@ -3,6 +3,8 @@ import Foundation
 import VaporPostgreSQL
 import HTTP
 import Auth
+import SwiftyBeaverVapor
+import SwiftyBeaver
 
 let drop = Droplet()
 
@@ -26,6 +28,11 @@ do {
 } catch {
 	print("Error adding provider: \(error)")
 }
+
+// Add SwiftyBeaver logging
+let console = ConsoleDestination()  // log to Xcode Console in color
+let sbProvider = SwiftyBeaverProvider(destinations: [console])
+drop.addProvider(sbProvider)
 
 // Disable caching in order to avoid recompling the app for HTML & CSS tweaks
 (drop.view as? LeafRenderer)?.stem.cache = nil

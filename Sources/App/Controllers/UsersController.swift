@@ -74,6 +74,8 @@ final class UsersController {
 			return error.description
 		}
 		
+		drop.log.self.verbose("User logged in to the app")
+		
 		// Return JSON for newly created user or redirect to HTML page (GET /lists)
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return Response(status: .ok)	// TODO: request.user to return token?
@@ -84,6 +86,9 @@ final class UsersController {
 	
 	func logout(for request: Request) throws -> ResponseRepresentable {
 		try request.auth.logout()
+		
+		drop.log.self.verbose("User logged out from the app")
+		
 		return Response(redirect: "/")
 	}
 }
