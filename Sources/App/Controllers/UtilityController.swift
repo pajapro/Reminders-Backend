@@ -7,9 +7,7 @@
 //
 
 import Vapor
-import VaporPostgreSQL
-import HTTP
-import Foundation
+import PostgreSQLDriver
 
 final class UtilityController {
 	
@@ -22,7 +20,7 @@ final class UtilityController {
 	/// Retrieve root
 	func retrieveRoot(for request: Request) throws -> ResponseRepresentable {
 		do {
-			_ = try request.auth.user()
+			_ = try request.currentUser()
 			return try drop.view.make("index", Node(node: ["isLoggedIn": true]))
 		} catch {
 			return try drop.view.make("index", Node(node: ["isLoggedIn": false]))
@@ -31,9 +29,9 @@ final class UtilityController {
 	
 	/// Retrieve the database version
 	func databaseVersion(for request: Request) throws -> ResponseRepresentable {
-		if let db = drop.database?.driver as? PostgreSQLDriver {
+		if let db = drop.database?.driver as? PostgreSQLDriver.Driver {
 			let version = try db.raw("SELECT version()")
-			return try JSON(node: version)
+			return JSON(node: version)
 		} else {
 			return "No database connection"
 		}
