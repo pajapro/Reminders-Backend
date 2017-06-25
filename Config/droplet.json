@@ -1,0 +1,10 @@
+{
+	"view": "leaf",
+	"middleware": [
+		"sessions",
+		"user-persist",
+		"version",
+		"error",
+		"file",
+    ],
+}

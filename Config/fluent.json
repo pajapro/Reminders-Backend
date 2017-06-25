@@ -1,0 +1,4 @@
+{
+	"driver": "postgresql",
+	"log": true,
+}
