@@ -7,7 +7,6 @@
 //
 
 import Vapor
-import HTTP
 
 final class VersionMiddleware: Middleware {
 	func respond(to request: Request, chainingTo next: Responder) throws -> Response {
