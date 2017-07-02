@@ -6,9 +6,9 @@
 //
 //
 
-import Foundation
 import Vapor
-import Fluent
+import FluentProvider
+import Foundation
 
 /// Enum defining priority.
 public enum Priority: String {
@@ -24,34 +24,28 @@ public enum Priority: String {
 	}
 }
 
-/// Struct holding information about a task.
-public struct Task: Model {
+/// Class holding information about a task.
+final class Task: Model, Timestampable {
 	
 	// MARK: - Properties
-	
-	/// Task entity name
-	fileprivate let entity = "tasks"
-	
-	/// Identifier when the model is fetched from the database. If it is `nil`, it **will be set when the model is saved**.
-	public var id: Node?
+
+	/// Allows Fluent to store extra information on model (such as the model's database id)
+	let storage = Storage()
 	
 	/// Task title
-	public var title: String
+	var title: String
 	
 	/// Task priority
-	public var priority: Priority
+	var priority: Priority
 	
 	/// Reminder date
-	public var dueDate: Date?
-	
-	/// Generated date of task creation
-	public var creationDate: Date = Date()
+	var dueDate: Date?
 	
 	/// Task done state
-	public var isDone: Bool = false
+	var isDone: Bool = false
 	
 	/// Identifier of a List (parent) it belongs to
-	public var listId: Node?
+	var listId: Identifier
 	
 	// MARK: Computed properties
 	
@@ -64,47 +58,31 @@ public struct Task: Model {
 	
 	// MARK: - Initializers
 	
-	public init(title: String, priority: Priority, dueDate: Date? = nil, listId: Node? = nil) {
-		self.id = nil
+	public init(title: String, priority: Priority, dueDate: Date? = nil, listId: Identifier) {
 		self.title = title
 		self.priority = priority
 		self.dueDate = dueDate
 		self.listId = listId
 	}
-}
-
-// MARK: - NodeInitializable protocol (how to initialize our model FROM the database)
-
-extension Task: NodeInitializable {
 	
-	/// Initializer creating model object from Node (Fluent pulls data from DB into intermediate representation `Node` THEN we need to convert back to type-safe model)
-	public init(node: Node, in context: Context) throws {
-		self.id = try node.extract(Identifiers.id)
-		self.title = try node.extract(Identifiers.title)
-		self.priority = try node.extract(Identifiers.priority, transform: Priority.priority) ?? .none
-		self.dueDate = try? node.extract(Identifiers.dueDate, transform: Date.date)	// Parse optional variable otherwise `nil`
-		self.creationDate = try node.extract(Identifiers.creationDate, transform: Date.date)
-		self.isDone = try node.extract(Identifiers.isDone)
-		self.listId = try node.extract(Identifiers.listId)
+	/// Initializer creating model object from Row (Fluent pulls data from DB into intermediate representation `Row` THEN we need to convert back to type-safe model). See `RowInitializable`
+	init(row: Row) throws {
+		self.title = try row.get(Identifiers.title)
+		self.priority = try row.get(Identifiers.priority, transform: Priority.priority) ?? .none
+		self.dueDate = try row.get(Identifiers.dueDate, transform: Date.date)
+		self.isDone = try row.get(Identifiers.isDone)
+		self.listId = try row.get(Identifiers.listId)
 	}
-}
-
-// MARK: - NodeRepresentable protocol (how to save our model TO the database)
-
-extension Task: NodeRepresentable {
 	
-	/// Converts type-safe model into an instance of `Node` object
-	public func makeNode(context: Context) throws -> Node {
-		let node = try Node(node: [
-			Identifiers.id: self.id,
-			Identifiers.title: self.title,
-			Identifiers.priority: self.priority.rawValue,
-			Identifiers.dueDate: self.dueDate?.timeIntervalSince1970,
-			Identifiers.creationDate: self.creationDate.timeIntervalSince1970,
-			Identifiers.isDone: self.isDone,
-			Identifiers.listId: self.listId])
-		
-		return node
+	/// Converts type-safe model into an instance of `Row` object. See `RowRepresentable`
+	func makeRow() throws -> Row {
+		var row = Row()
+		try row.set(Identifiers.title, self.title)
+		try row.set(Identifiers.priority, self.priority.rawValue)
+		try row.set(Identifiers.dueDate, self.dueDate?.timeIntervalSince1970)
+		try row.set(Identifiers.isDone, self.isDone)
+		try row.set(Identifiers.listId, self.listId)
+		return row
 	}
 }
 
@@ -114,26 +92,25 @@ extension Task: JSONRepresentable {
 	
 	/// Converts model into JSON _and_ enriches it with additional values
 	public func makeJSON() throws -> JSON {
+		var json = JSON()
 		if let unwrappedDueDate = self.dueDate {
-			return try JSON(node: [
-				Identifiers.id: self.id,
-				Identifiers.title: self.title,
-				Identifiers.priority: self.priority.rawValue,
-				Identifiers.dueDate: DateFormatter.configuredDateFormatter().string(from: unwrappedDueDate),
-				Identifiers.creationDate: DateFormatter.configuredDateFormatter().string(from: self.creationDate),
-				Identifiers.isDone: self.isDone,
-				Identifiers.listId: self.listId
-			])
+			try json.set(Identifiers.id, self.id?.string)
+			try json.set(Identifiers.title, self.title)
+			try json.set(Identifiers.priority, self.priority.rawValue)
+			try json.set(Identifiers.dueDate, DateFormatter.configuredDateFormatter().string(from: unwrappedDueDate))
+			try json.set(Identifiers.createdAt, DateFormatter.configuredDateFormatter().string(from: self.createdAt!))
+			try json.set(Identifiers.isDone, self.isDone)
+			try json.set(Identifiers.listId, self.listId.string)
 		} else {
-			return try JSON(node: [
-				Identifiers.id: self.id,
-				Identifiers.title: self.title,
-				Identifiers.priority: self.priority.rawValue,
-				Identifiers.creationDate: DateFormatter.configuredDateFormatter().string(from: self.creationDate),
-				Identifiers.isDone: self.isDone,
-				Identifiers.listId: self.listId
-			])
+			try json.set(Identifiers.id, self.id?.string)
+			try json.set(Identifiers.title, self.title)
+			try json.set(Identifiers.priority, self.priority.rawValue)
+			try json.set(Identifiers.createdAt, DateFormatter.configuredDateFormatter().string(from: self.createdAt!))
+			try json.set(Identifiers.isDone, self.isDone)
+			try json.set(Identifiers.listId, self.listId.string)
 		}
+		
+		return json
 	}
 }
 
@@ -143,20 +120,19 @@ extension Task: Preparation {
 
 	/// The prepare method should call any methods it needs on the database to prepare.
 	public static func prepare(_ database: Database) throws {
-		try database.create(self.entity) { tasks in
+		try database.create(self) { tasks in
 			tasks.id()
 			tasks.string(Identifiers.title)
 			tasks.string(Identifiers.priority)
 			tasks.double(Identifiers.dueDate, optional: true)
-			tasks.double(Identifiers.creationDate)
 			tasks.bool(Identifiers.isDone)
-			tasks.parent(List.self, optional: false)
+			tasks.foreignId(for: List.self)
 		}
 	}
 
 	/// The revert method should undo any actions caused by the prepare method.
 	public static func revert(_ database: Database) throws {
-		try database.delete(self.entity)	// only called when manually executed via CLI
+		try database.delete(self)	// only called when manually executed via CLI
 	}
 }
 
@@ -165,7 +141,7 @@ extension Task: Preparation {
 extension Task {
 
 	/// Relationship convenience method to fetch a parent entity
-	func list() throws -> List? {
-		return try parent(self.listId).get()
+	var list: Parent<Task, List> {
+		return parent(id: self.listId)
 	}
 }

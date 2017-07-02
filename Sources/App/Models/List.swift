@@ -6,62 +6,43 @@
 //
 //
 
-import Foundation
 import Vapor
-import Fluent
-import Auth
+import FluentProvider
+import AuthProvider
 
-/// Struct holding information about a list of tasks.
-public struct List: Model {
+/// Class holding information about a list of tasks.
+final class List: Model, Timestampable {
 	
 	// MARK: - Properties
 	
-	/// List entity name
-	fileprivate let entity = "lists"
-	
-	/// Contains the identifier when the model is fetched from the database. If it is `nil`, it **will be set when the model is saved**.
-	public var id: Node?
+	/// Allows Fluent to store extra information on model (such as the model's database id)
+	let storage = Storage()
 	
 	/// List title
-	public var title: String
+	var title: String
 	
 	/// Identifier of a User (parent) it belongs to
-	public var userId: Node?
+	var userId: Identifier
 	
 	// MARK: - Initializers
 	
-	public init(title: String, userId: Node? = nil) {
-		self.id = nil
+	init(title: String, userId: Identifier) {
 		self.title = title
 		self.userId = userId
 	}
-}
-
-// MARK: - NodeInitializable protocol (how to initialize our model FROM the database)
-
-extension List: NodeInitializable {
 	
-	/// Initializer creating model object from Node (Fluent pulls data from DB into intermediate representation `Node` THEN we need to convert back to type-safe model)
-	public init(node: Node, in context: Context) throws {
-		self.id = try node.extract(Identifiers.id)
-		self.title = try node.extract(Identifiers.title)
-		self.userId = try node.extract(Identifiers.userId)
+	/// Initializer creating model object from Row (Fluent pulls data from DB into intermediate representation `Row` THEN we need to convert back to type-safe model). See `RowInitializable`
+	init(row: Row) throws {
+		self.title = try row.get(Identifiers.title)
+		self.userId = try row.get(Identifiers.userId)
 	}
-}
-
-// MARK: - NodeRepresentable protocol (how to save our model TO the database)
-
-extension List: NodeRepresentable {
 	
-	/// Converts type-safe model into an instance of `Node` object
-	public func makeNode(context: Context) throws -> Node {
-		let node = try Node(node: [
-				Identifiers.id: self.id,
-				Identifiers.title: self.title,
-				Identifiers.userId: self.userId
-			])
-		
-		return node
+	/// Converts type-safe model into an instance of `Row` object. See `RowRepresentable`
+	func makeRow() throws -> Row {
+		var row = Row()
+		try row.set(Identifiers.title, self.title)
+		try row.set(Identifiers.userId, self.userId)
+		return row
 	}
 }
 
@@ -71,24 +52,20 @@ extension List: JSONRepresentable {
 	
 	/// Converts model into JSON _and_ enriches it with additional values
 	public func makeJSON() throws -> JSON {
-		var result: JSON
+		var result = JSON()
 		do {
-			let allTasksCount = try self.tasks().count()
-			let completedTasksCount = try self.tasks().filter(Identifiers.isDone, .equals, true).count()
+			let allTasksCount = try self.tasks.count()
+			let completedTasksCount = try self.tasks.filter(Identifiers.isDone, .equals, true).count()
 			
-			result = try JSON(node: [
-				Identifiers.id: self.id,
-				Identifiers.title: self.title,
-				"task_count": allTasksCount,
-				"completed_task_count": completedTasksCount,
-				Identifiers.userId: self.userId
-			])
+			try result.set(Identifiers.id, self.id?.string)
+			try result.set(Identifiers.title, self.title)
+			try result.set("task_count", allTasksCount)
+			try result.set("completed_task_count", completedTasksCount)
+			try result.set(Identifiers.userId, self.userId.string)
 		} catch {
-			result = try JSON(node: [
-				Identifiers.id: self.id,
-				Identifiers.title: self.title,
-				Identifiers.userId: self.userId
-			])
+			try result.set(Identifiers.id, self.id?.string)
+			try result.set(Identifiers.title, self.title)
+			try result.set(Identifiers.userId, self.userId.string)
 		}
 		
 		return result
@@ -101,16 +78,16 @@ extension List: Preparation {
 	
 	/// The prepare method should call any methods it needs on the database to prepare.
 	public static func prepare(_ database: Database) throws {
-		try database.create(self.entity) { tasks in
+		try database.create(self) { tasks in
 			tasks.id()
 			tasks.string(Identifiers.title)
-			tasks.parent(User.self, optional: false)
+			tasks.foreignId(for: User.self)
 		}
 	}
 	
 	/// The revert method should undo any actions caused by the prepare method.
 	public static func revert(_ database: Database) throws {
-		try database.delete(self.entity)	// only called when manually executed via CLI
+		try database.delete(self)	// only called when manually executed via CLI
 	}
 }
 
@@ -128,7 +105,7 @@ extension List: Equatable {
 extension List {
 	
 	/// Relationship convenience method to fetch children entities
-	func tasks() throws -> Children<Task> {
+	var tasks: Children<List, Task> {
 		return children()
 	}
 }
