@@ -2,6 +2,7 @@ import Vapor
 import PostgreSQLProvider
 import AuthProvider
 import LeafProvider
+import SwiftyBeaverProvider
 import Sessions
 
 let config = try Config()
@@ -30,7 +31,10 @@ do {
 }
 
 do {
+	// SwiftyBeaver logging	
+	try config.addProvider(SwiftyBeaverProvider.Provider.self)
 } catch {
+	print("Error adding SwiftyBeaver provider: \(error)")
 }
 
 // MARK: Database setup

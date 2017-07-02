@@ -1,4 +1,5 @@
 {
+	"log": "swiftybeaver",
 	"view": "leaf",
 	"middleware": [
 		"sessions",

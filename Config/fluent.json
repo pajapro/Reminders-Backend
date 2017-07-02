@@ -1,4 +1,3 @@
 {
 	"driver": "postgresql",
-	"log": true,
 }

@@ -78,7 +78,7 @@ final class UsersController {
 		let authenticatedUser = try User.authenticate(credentials)
 		request.auth.authenticate(authenticatedUser)
 		
-		drop.log.self.verbose("User logged in to the app")
+		drop.log.self.info("User logged in to the app 🤗")
 		
 		// Return JSON for newly created user or redirect to HTML page (GET /lists)
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
@@ -92,7 +92,7 @@ final class UsersController {
 	func logout(for request: Request) throws -> ResponseRepresentable {
 		try request.auth.unauthenticate()
 		
-		drop.log.self.verbose("User logged out from the app")
+		drop.log.self.info("User logged out from the app 🚪")
 		
 		return Response(redirect: "/")
 	}
