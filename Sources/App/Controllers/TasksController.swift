@@ -7,27 +7,26 @@
 //
 
 import Vapor
-import VaporPostgreSQL
 import HTTP
-import Foundation
-import Auth
+import PostgreSQLProvider
+import AuthProvider
 
 final class TasksController {
 	
-	func addRoutes(drop: Droplet, with middleware: Middleware) {
+	func addRoutes(drop: Droplet, with middleware: [Middleware]) {
 		let tasks = drop.grouped(middleware).grouped(Task.entity)
 		
 		tasks.post(handler: create)
 		tasks.get(handler: retrieveAll)
-		tasks.get(Int.self, handler: retrieve)
-		tasks.put(Int.self, handler: update)
-		tasks.delete(Int.self, handler: delete)
+		tasks.get(Int.parameter, handler: retrieve)
+		tasks.put(Int.parameter, handler: update)
+		tasks.delete(Int.parameter, handler: delete)
 		
 		// HACK to perform DELETE operation on POST request in order to avoid extra JS in FE
-		tasks.post(Int.self, "delete", handler: delete)
+		tasks.post(Int.parameter, "delete", handler: delete)
 		
 		// HACK to perform PUT operation on POST request in order to avoid extra JS in FE
-		tasks.post(Int.self, "update", handler: complete)
+		tasks.post(Int.parameter, "update", handler: complete)
 	}
 	
 	/// Create a new task
@@ -35,11 +34,11 @@ final class TasksController {
 		
 		// Required values
 		guard let taskTitle = request.data[Identifiers.title]?.string else {
-			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.title) value")
+			throw Abort(.badRequest, reason: "Missing required \(Identifiers.title) value")
 		}
 		
 		guard let listId = request.data[Identifiers.listId]?.int else {
-			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.listId) value")
+			throw Abort(.badRequest, reason: "Missing required \(Identifiers.listId) value")
 		}
 		
 		// Optional values
@@ -53,9 +52,8 @@ final class TasksController {
 			taskDueDate = Date(timeIntervalSince1970: taskDueDateRaw)
 		}
 		
-		let authenticatedUser = try request.auth.user()
-		let list = try authenticatedUser.list(with: listId)
-		var task = Task(title: taskTitle, priority: taskPriority, dueDate: taskDueDate, listId: list.id)
+		let list = try request.currentUser().list(with: listId)
+		let task = Task(title: taskTitle, priority: taskPriority, dueDate: taskDueDate, listId: list.id!)
 		try task.save()
 		
 		// Return JSON for newly created list or redirect to HTML page (GET /tasks)
@@ -70,25 +68,25 @@ final class TasksController {
 	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
 		
 		/// Helper method, which filters out all tasks for which user is not authorized to read
-		func filterOutUnauthorized(tasks: [Task], for authenticatedUser: Auth.User) throws -> [Task] {
+		func filterOutUnauthorized(tasks: [Task], for authenticatedUser: User) throws -> [Task] {
 			
 			// Fetch authenticated user's lists
-			let authenticatedUserLists = try authenticatedUser.lists().all()
+			let authenticatedUserLists = try authenticatedUser.lists.all()
 			
 			// Filter out tasks whose parent list is not accessible for the current user
-			let filteredTasks = try tasks.filter {
-				guard let parentList = try $0.list() else { return false }
-				return authenticatedUserLists.contains(where: { $0 == parentList} )
+			let filteredTasks = try tasks.filter { task in
+				let parentList = try task.list.get()
+				return authenticatedUserLists.contains(parentList!)
 			}
 			
 			return filteredTasks
 		}
 		
-		let authenticatedUser = try request.auth.user()
+		let authenticatedUser = try request.currentUser()
 		let jsonResponse: JSON
 		
 		if let taskTitle = request.data[Identifiers.title]?.string {
-			let foundTasks = try Task.query().filter(Identifiers.title, contains: taskTitle).all()
+			let foundTasks = try Task.makeQuery().filter(Identifiers.title, .contains, taskTitle).all()
 			let filteredTasks = try filterOutUnauthorized(tasks: foundTasks, for: authenticatedUser)
 			jsonResponse = try filteredTasks.makeJSON()
 		} else {
@@ -106,15 +104,19 @@ final class TasksController {
 	}
 	
 	/// Retrieve a task
-	func retrieve(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
-		let task = try self.isUserAuthorizedToModifyTask(with: taskID, within: request)
+	func retrieve(for request: Request) throws -> ResponseRepresentable {
+		let taskId = try request.parameters.next(Int.self)
+		
+		let task = try self.isUserAuthorizedToModifyTask(with: taskId, within: request)
 		
 		return try task.makeJSON()		// No UI hence not returning a view
 	}
 	
 	/// Update a task
-	func update(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
-		var task = try self.isUserAuthorizedToModifyTask(with: taskID, within: request)
+	func update(for request: Request) throws -> ResponseRepresentable {
+		let taskId = try request.parameters.next(Int.self)
+		
+		let task = try self.isUserAuthorizedToModifyTask(with: taskId, within: request)
 		
 		if let taskTitle = request.data[Identifiers.title]?.string {
 			task.title = taskTitle
@@ -124,7 +126,7 @@ final class TasksController {
 			if let taskPriority = Priority(rawValue: taskPriorityRaw) {
 				task.priority = taskPriority
 			} else {
-				throw Abort.custom(status: .badRequest, message: "Invalid value \(taskPriorityRaw) of \(Identifiers.priority) parameter")
+				throw Abort(.badRequest, reason: "Invalid value \(taskPriorityRaw) of \(Identifiers.priority) parameter")
 			}
 		}
 		
@@ -142,8 +144,10 @@ final class TasksController {
 	}
 	
 	/// Delete a task
-	func delete(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
-		let task = try self.isUserAuthorizedToModifyTask(with: taskID, within: request)
+	func delete(for request: Request) throws -> ResponseRepresentable {
+		let taskId = try request.parameters.next(Int.self)
+		
+		let task = try self.isUserAuthorizedToModifyTask(with: taskId, within: request)
 		
 		try task.delete()
 		
@@ -151,7 +155,7 @@ final class TasksController {
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
 			return Response(status: .ok)
 		} else {
-			if let parentId = task.listId?.int {
+			if let parentId = task.listId.string {
 				return Response(redirect: "/\(List.entity)/\(parentId)/\(Task.entity)")
 			} else {
 				return Response(redirect: "/\(List.entity)")
@@ -160,18 +164,20 @@ final class TasksController {
 	}
 	
 	/// Complete a task (HACK in order to avoid adding JS into frontend)
-	func complete(for request: Request, with taskID: Int) throws -> ResponseRepresentable {
+	func complete(for request: Request) throws -> ResponseRepresentable {
 		guard let isDone = request.query?[Identifiers.isDone]?.bool else {
-			throw Abort.custom(status: .badRequest, message: "Invalid value for \(Identifiers.isDone) query")
+			throw Abort(.badRequest, reason: "Invalid value for \(Identifiers.isDone) query")
 		}
 		
-		var task = try self.isUserAuthorizedToModifyTask(with: taskID, within: request)
+		let taskId = try request.parameters.next(Int.self)
+		
+		let task = try self.isUserAuthorizedToModifyTask(with: taskId, within: request)
 		
 		task.isDone = isDone
 		
 		try task.save()
 		
-		if let parentId = task.listId?.int {
+		if let parentId = task.listId.string {
 			return Response(redirect: "/\(List.entity)/\(parentId)/\(Task.entity)")
 		} else {
 			return Response(redirect: "/\(List.entity)")
@@ -186,23 +192,18 @@ final class TasksController {
 	private func isUserAuthorizedToModifyTask(with taskID: Int, within request: Request) throws -> Task {
 		// Find a task
 		guard let task = try Task.find(taskID) else {
-			throw Abort.custom(status: .notFound, message: "Task with \(Identifiers.id): \(taskID) could not be found")
-		}
-		
-		// Find task's parent
-		guard let parentList = try task.list() else {
-			throw Abort.custom(status: .notFound, message: "Parent List for Task with \(Identifiers.id): \(taskID) could not be found")
+			throw Abort(.notFound, reason: "Task with \(Identifiers.id): \(taskID) could not be found")
 		}
 		
 		// Fetch authenticated user's lists
-		let authenticatedUser = try request.auth.user()
-		let authenticatedUserLists = try authenticatedUser.lists().all()
+		let authenticatedUserLists = try request.currentUser().lists.all()
+		let parentList = try task.list.get()
 		
 		// Ensure that a task's list is contained in authenticated user's lists
-		if authenticatedUserLists.contains(where: { $0 == parentList} ) {
+		if authenticatedUserLists.contains(parentList!) {
 			return task
 		} else {
-			throw Abort.custom(status: .forbidden, message: "User is unauthorized to modify a task with \(Identifiers.id): \(taskID)")
+			throw Abort(.forbidden, reason: "User is unauthorized to modify a task with \(Identifiers.id): \(taskID)")
 		}
 	}
 }

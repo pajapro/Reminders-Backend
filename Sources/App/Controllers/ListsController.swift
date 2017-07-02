@@ -7,35 +7,34 @@
 //
 
 import Vapor
-import VaporPostgreSQL
 import HTTP
-import Foundation
-import Auth
+import PostgreSQLProvider
+import AuthProvider
 
 final class ListsController {
 	
-	func addRoutes(to drop: Droplet, with middleware: Middleware) {
+	func addRoutes(to drop: Droplet, with middleware: [Middleware]) {
 		let lists = drop.grouped(middleware).grouped(List.entity)
 		
 		lists.post(handler: create)
 		lists.get(handler: retrieveAll)
-		lists.get(Int.self, handler: retrieve)
-		lists.get(Int.self, Task.entity, handler: retrieveTasks)
-		lists.put(Int.self, handler: update)
-		lists.delete(Int.self, handler: delete)
+		lists.get(Int.parameter, handler: retrieve)
+		lists.get(Int.parameter, Task.entity, handler: retrieveTasks)
+		lists.put(Int.parameter, handler: update)
+		lists.delete(Int.parameter, handler: delete)
 		
 		// HACK to perform DELETE operation on POST request in order to avoid extra JS in FE
-		lists.post(Int.self, "delete", handler: delete)
+		lists.post(Int.parameter, "delete", handler: delete)
 	}
 	
 	/// Create a new list
 	func create(for request: Request) throws -> ResponseRepresentable {
 		guard let listTitle = request.data[Identifiers.title]?.string else {
-			throw Abort.custom(status: .badRequest, message: "Missing required \(Identifiers.title) value")
+			throw Abort(.badRequest, reason: "Missing required \(Identifiers.title) value")
 		}
 		
-		let authenticatedUser = try request.auth.user()
-		var list = List(title: listTitle, userId: authenticatedUser.id)
+		let authenticatedUser = try request.currentUser()
+		let list = List(title: listTitle, userId: authenticatedUser.id!)
 		try list.save()
 		
 		// Return JSON for newly created list or redirect to HTML page (GET /lists)
@@ -48,13 +47,12 @@ final class ListsController {
 	
 	/// Retrieve all lists or those matching the provided query
 	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
-		let authenticatedUser = try request.auth.user()
 		let jsonResponse: JSON
 		
 		if let listTitle = request.data[Identifiers.title]?.string {
-			jsonResponse = try authenticatedUser.lists().filter(Identifiers.title, contains: listTitle).all().makeJSON()
+			jsonResponse = try request.currentUser().lists.filter(Identifiers.title, .contains, listTitle).all().makeJSON()
 		} else {
-			jsonResponse = try authenticatedUser.lists().all().makeJSON()
+			jsonResponse = try request.currentUser().lists.all().makeJSON()
 		}
 		
 		// Return JSON otherwise HTML page with Lists
@@ -66,21 +64,21 @@ final class ListsController {
 	}
 	
 	/// Retrieve a list
-	func retrieve(for request: Request, with listId: Int) throws -> ResponseRepresentable {
-		let authenticatedUser = try request.auth.user()
+	func retrieve(for request: Request) throws -> ResponseRepresentable {
+		let listId = try request.parameters.next(Int.self)
 		
-		let list = try authenticatedUser.list(with: listId)
+		let list = try request.currentUser().list(with: listId)
 		
 		return try list.makeJSON()	// No UI hence not returning a view
 	}
 	
 	/// Retrieve all tasks associated with list
-	func retrieveTasks(for request: Request, with listId: Int) throws -> ResponseRepresentable {
-		let authenticatedUser = try request.auth.user()
+	func retrieveTasks(for request: Request) throws -> ResponseRepresentable {
+		let listId = try request.parameters.next(Int.self)
 		
-		let list = try authenticatedUser.list(with: listId)
+		let list = try request.currentUser().list(with: listId)
 		
-		let jsonResponse = try list.tasks().all().makeJSON()
+		let jsonResponse = try list.tasks.all().makeJSON()
 		
 		// Return JSON otherwise HTML page with Tasks
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
@@ -92,10 +90,10 @@ final class ListsController {
 	}
 	
 	/// Update a list
-	func update(for request: Request, with listId: Int) throws -> ResponseRepresentable {
-		let authenticatedUser = try request.auth.user()
+	func update(for request: Request) throws -> ResponseRepresentable {
+		let listId = try request.parameters.next(Int.self)
 		
-		var list = try authenticatedUser.list(with: listId)
+		let list = try request.currentUser().list(with: listId)
 		
 		if let listTitle = request.data[Identifiers.title]?.string {
 			list.title = listTitle
@@ -106,16 +104,17 @@ final class ListsController {
 	}
 	
 	/// Delete a list
-	func delete(for request: Request, with listId: Int) throws -> ResponseRepresentable {
-		let authenticatedUser = try request.auth.user()
+	func delete(for request: Request) throws -> ResponseRepresentable {
+		let listId = try request.parameters.next(Int.self)
 		
-		let list = try authenticatedUser.list(with: listId)
-		
-		try list.delete()
+		let list = try request.currentUser().list(with: listId)
 		
 		// Delete associated tasks with this list
-		let associatedTasks = try list.tasks().all()
+		let associatedTasks = try list.tasks.all()
 		try associatedTasks.forEach { try $0.delete() }
+		
+		// Delete actual list
+		try list.delete()
 		
 		// Return JSON for newly created list or redirect to HTML page (GET /lists)
 		if request.headers[HeaderKey.contentType] == Identifiers.json {
