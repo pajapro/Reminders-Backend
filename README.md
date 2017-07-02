@@ -1,4 +1,4 @@
-[![Language Swift 3.0](https://img.shields.io/badge/Language-Swift%203.0-orange.svg)](https://swift.org) [![Vapor 1.5](https://img.shields.io/badge/Vapor-1.5-blue.svg)](http://vapor.codes/)
+[![Language Swift 3.0](https://img.shields.io/badge/Language-Swift%203.0-orange.svg)](https://swift.org) [![Vapor 1.5](https://img.shields.io/badge/Vapor-2.1.1-blue.svg)](http://vapor.codes/)
 
 # 🔔 Reminders-Backend
 The goal of this personal learning project is to develop simplified [Reminders app](https://support.apple.com/en-us/HT205890)  on web. The application is written in [Swift 3.0](https://swift.org/blog/swift-3-0-released/) and is based on [Vapor](https://vapor.codes/) Swift web framework.
