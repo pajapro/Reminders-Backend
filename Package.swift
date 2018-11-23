@@ -1,14 +1,20 @@
+// swift-tools-version:4.0
 import PackageDescription
 
 let package = Package(
     name: "Reminders-Backend",
-	dependencies: [
-		.Package(url: "https://github.com/vapor/vapor.git", majorVersion: 2),
-		.Package(url: "https://github.com/vapor/auth-provider.git", majorVersion: 1),
-		.Package(url: "https://github.com/vapor/fluent-provider.git", majorVersion: 1),
-		.Package(url: "https://github.com/vapor/validation-provider.git", majorVersion: 1),
-        .Package(url: "https://github.com/vapor/leaf-provider.git", majorVersion: 1),
-		.Package(url: "https://github.com/vapor-community/postgresql-provider", majorVersion: 2),
-		.Package(url: "https://github.com/vapor-community/swiftybeaver-provider", majorVersion: 1),
-	]
+    dependencies: [
+        // 💧 A server-side Swift web framework.
+        .package(url: "https://github.com/vapor/vapor.git", from: "3.1.0"),
+        
+        // 🖋🐘 Swift ORM (queries, models, relations, etc) built on PostgreSQL.
+        .package(url: "https://github.com/vapor/fluent-postgresql.git", from: "1.0.0"),
+
+    ],
+    targets: [
+        .target(name: "App", dependencies: ["FluentPostgreSQL", "Vapor"]),
+        .target(name: "Run", dependencies: ["App"]),
+        .testTarget(name: "AppTests", dependencies: ["App"])
+    ]
 )
+
