@@ -11,12 +11,6 @@ public func routes(_ router: Router) throws {
     router.get("foo", Int.parameter) { req in
         return try "Hello \(req.parameters.next(Int.self))"
     }
-
-    // Example of configuring a controller
-    let todoController = TodoController()
-    router.get("todos", use: todoController.index)
-    router.post("todos", use: todoController.create)
-    router.delete("todos", Todo.parameter, use: todoController.delete)
     
     // Add (protected) Lists routes
     try router.register(collection: ListsController())
