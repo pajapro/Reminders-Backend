@@ -30,7 +30,7 @@ final class ListsController: RouteCollection {
         // makeOutcoming ?
     }
     
-    /// Returns a list of all `List`s.
+    /// Returns a list of all `List`s or found by title.
     func retrieveAll(_ req: Request) throws -> Future<[List]> {
         do {
             let searchTerm = try req.query.get(String.self, at: "title")

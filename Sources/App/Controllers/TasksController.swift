@@ -29,9 +29,14 @@ final class TasksController: RouteCollection {
         // makeOutcoming ?
     }
     
-    /// Returns a list of all `Task`s.
+    /// Returns a list of all `Task`s or found by title.
     func retrieveAll(_ req: Request) throws -> Future<[Task]> {
-        return Task.query(on: req).all()
+        do {
+            let searchTerm = try req.query.get(String.self, at: "title")
+            return Task.query(on: req).filter(\.title, .ilike, "%\(searchTerm)%").all()
+        } catch {
+            return Task.query(on: req).all()
+        }
     }
     
     /// Returns a specific `Task`.
