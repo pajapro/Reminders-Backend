@@ -32,7 +32,12 @@ final class ListsController: RouteCollection {
     
     /// Returns a list of all `List`s.
     func retrieveAll(_ req: Request) throws -> Future<[List]> {
-        return List.query(on: req).all()
+        do {
+            let searchTerm = try req.query.get(String.self, at: "title")
+            return List.query(on: req).filter(\.title, .ilike, "%\(searchTerm)%").all()
+        } catch {
+            return List.query(on: req).all()
+        }
     }
     
     /// Returns a specific `List`.
