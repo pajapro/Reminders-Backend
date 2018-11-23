@@ -35,6 +35,6 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     var migrations = MigrationConfig()
     migrations.add(model: Task.self, database: .psql)
     migrations.add(model: List.self, database: .psql)
-    // TODO: List, User
+    // TODO: User
     services.register(migrations)
 }
