@@ -66,11 +66,11 @@ extension Task {
         var priority: Priority?
         var dueDate: Date?
         var isDone: Bool?
-        var listId: Int?
+        var listId: Int
         
         // Factory to create empty incoming Task
         func makeTask() -> Task {
-            return Task(id: nil, title: title, priority: priority ?? .none, dueDate: dueDate ?? nil, isDone: isDone ?? false, listId: listId ?? 0)
+            return Task(id: nil, title: title, priority: priority ?? .none, dueDate: dueDate ?? nil, isDone: isDone ?? false, listId: listId)
         }
     }
 }
