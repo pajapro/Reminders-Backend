@@ -23,8 +23,13 @@ final class TasksController: RouteCollection {
     /// Saves a decoded `Task` to the database.
     func create(_ req: Request) throws -> Future<Task> {
         return try req.content.decode(Task.Incoming.self)
-            .flatMap { task in
-                return task.makeTask().save(on: req)
+			.flatMap { incomingTask in
+				List.find(incomingTask.listId, on: req)
+					.unwrap(or: Abort.init(.internalServerError))
+					.transform(to: incomingTask)
+			}
+            .flatMap { incomingTask in
+                return incomingTask.makeTask().save(on: req)
             }
         // makeOutcoming ?
     }
