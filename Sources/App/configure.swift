@@ -17,24 +17,20 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     services.register(middlewares)
     
-    // Configure PostgreSQL database
+    // Register PostgreSQL database
     let psqlConfig = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "vapor", password: "password")
     let psqlDatabase = PostgreSQLDatabase(config: psqlConfig)
-    
     var dbConfig = DatabasesConfig()
-
     /// Register the configured PostgreSQL database to the database config
     dbConfig.add(database: psqlDatabase, as: .psql)
-    
     // Enable logging on the SQLite database
     dbConfig.enableLogging(on: .psql)
-    
     services.register(dbConfig)
 
-    /// Configure migrations
+    /// Register model migrations
     var migrations = MigrationConfig()
     migrations.add(model: Task.self, database: .psql)
     migrations.add(model: List.self, database: .psql)
-    // TODO: User
+    migrations.add(model: User.self, database: .psql)
     services.register(migrations)
 }

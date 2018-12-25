@@ -17,6 +17,9 @@ public func routes(_ router: Router) throws {
     
     // Add (protected) Tasks routes
     try router.register(collection: TasksController())
+	
+	// Add (protected) Users routes
+	try router.register(collection: UsersController())
     
     // Add (unprotected) utility routes
     let utilityController = UtilityController()
