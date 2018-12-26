@@ -7,6 +7,7 @@
 
 import Vapor
 import FluentPostgreSQL
+import Authentication
 
 struct User: PostgreSQLModel {
 	
@@ -20,6 +21,14 @@ struct User: PostgreSQLModel {
 	var email: String
 	
 	var password: String
+}
+
+extension User {
+	init(name: String, email: String, password: String) {
+		self.name = name
+		self.email = email
+		self.password = password
+	}
 }
 
 /// Allows `User` to be used as a dynamic migration.
@@ -45,3 +54,21 @@ extension User {
 		}
 	}
 }
+
+extension User: BasicAuthenticatable {
+	static var usernameKey: UsernameKey { return \User.email }
+	static var passwordKey: PasswordKey { return \User.password }
+}
+
+extension User {
+	struct AuthenticatedUser: Content {
+		var email: String
+		var id: Int
+	}
+	
+	struct LoginRequest: Content {
+		var email: String
+		var password: String
+	}
+}
+
