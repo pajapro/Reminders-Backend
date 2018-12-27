@@ -48,21 +48,7 @@ extension User {
 }
 
 /// Allows `User` to be used as a dynamic migration.
-extension User: Migration  {}
-
-struct UserEmailUniqueConstraint: Migration {
-	typealias Database = PostgreSQLDatabase
-	
-	static func prepare(on conn: PostgreSQLConnection) -> Future<Void> {
-		return Database.update(User.self, on: conn) { builder in
-			builder.unique(on: \.email)
-		}
-	}
-	
-	static func revert(on connection: PostgreSQLConnection) -> Future<Void> {
-		return Future.map(on: connection) {}
-	}
-}
+extension User: Migration { }
 
 /// Allows `User` to be encoded to and decoded from HTTP messages.
 extension User: Content { }
