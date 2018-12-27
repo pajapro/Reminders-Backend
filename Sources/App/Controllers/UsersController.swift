@@ -40,7 +40,7 @@ final class UsersController: RouteCollection {
 	
 	/// Authenticates user with username & password and returns generated access token
 	func login(_ req: Request) throws -> Future<User.Outcoming> {
-		let user = try req.requireAuthenticated(User.self)
+		let user = try req.requireAuthenticated(User.self) // will automatically throw an appropriate unauthorized error if the valid credentials were not supplied
 		let accessToken = try Token.createToken(forUser: user)
 		return accessToken.save(on: req).map(to: User.Outcoming.self) { createdToken in
 			let outcomingUser = User.Outcoming(email: user.email, token: createdToken.token)

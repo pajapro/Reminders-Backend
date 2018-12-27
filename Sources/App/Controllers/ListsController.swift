@@ -7,18 +7,23 @@
 
 import Vapor
 import FluentPostgreSQL
+import Authentication
 
 /// Controls basic CRUD operations on `List`s.
 final class ListsController: RouteCollection {
     
     func boot(router route: Router) throws {
-        let route = route.grouped("lists")
-        route.post(use: create)
-        route.get(use: retrieveAll)
-        route.get(List.parameter, use: index)
-        route.get(List.parameter, "tasks", use: retrieveTasks)
-        route.patch(List.parameter, use: update)
-        route.delete(List.parameter, use: delete)
+        let listsRoutes = route.grouped("lists")
+
+		// Using `guardAuthMiddleware` to protect routes that might not otherwise attempt to access the authenticated user (which always requires prior authentication)
+		let tokenProtected = listsRoutes.grouped(User.tokenAuthMiddleware(), User.guardAuthMiddleware())
+		
+        tokenProtected.post(use: create)
+        tokenProtected.get(use: retrieveAll)
+        tokenProtected.get(List.parameter, use: index)
+        tokenProtected.get(List.parameter, "tasks", use: retrieveTasks)
+        tokenProtected.patch(List.parameter, use: update)
+        tokenProtected.delete(List.parameter, use: delete)
     }
     
     /// Saves a decoded `List` to the database.

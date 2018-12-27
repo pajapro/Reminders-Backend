@@ -12,12 +12,16 @@ import FluentPostgreSQL
 final class TasksController: RouteCollection {
     
     func boot(router route: Router) throws {
-        let route = route.grouped("tasks")
-        route.post(use: create)
-        route.get(use: retrieveAll)
-        route.get(Task.parameter, use: index)
-        route.patch(Task.parameter, use: update)
-        route.delete(Task.parameter, use: delete)
+        let tasksRoutes = route.grouped("tasks")
+		
+		// Using `guardAuthMiddleware` to protect routes that might not otherwise attempt to access the authenticated user (which always requires prior authentication)
+		let tokenProtected = tasksRoutes.grouped(User.tokenAuthMiddleware(), User.guardAuthMiddleware())
+		
+        tokenProtected.post(use: create)
+        tokenProtected.get(use: retrieveAll)
+        tokenProtected.get(Task.parameter, use: index)
+        tokenProtected.patch(Task.parameter, use: update)
+        tokenProtected.delete(Task.parameter, use: delete)
     }
     
     /// Saves a decoded `Task` to the database.
