@@ -20,14 +20,36 @@ struct User: PostgreSQLModel {
 	
 	var email: String
 	
+	/// Contains hash value of user password
 	var password: String
 }
 
 extension User {
+	
+	// Used to create new a instance while registering, where hashed password can be set
 	init(name: String, email: String, password: String) {
 		self.name = name
 		self.email = email
 		self.password = password
+	}
+	
+	// User registration struct
+	struct Registration: Content {
+		var name: String
+		var email: String
+		var password: String
+	}
+	
+	// User login struct
+	struct Login: Content {
+		var email: String
+		var password: String
+	}
+	
+	// User public representation struct
+	struct Outcoming: Content {
+		var email: String
+		var token: String
 	}
 }
 
@@ -40,35 +62,10 @@ extension User: Content { }
 /// Allows `User` to be used as a dynamic parameter in route definitions.
 extension User: Parameter { }
 
-/// MARK: - Incoming struct
-extension User {
+// MARK: - TokenAuthenticatable
+extension User: TokenAuthenticatable {
 	
-	struct Incoming: Content {
-		var name: String
-		var email: String
-		var password: String
-		
-		// Factory to create empty incoming User
-		func makeUser() -> User {
-			return User(id: nil, name: name, email: email, password: password)
-		}
-	}
-}
-
-extension User: BasicAuthenticatable {
-	static var usernameKey: UsernameKey { return \User.email }
-	static var passwordKey: PasswordKey { return \User.password }
-}
-
-extension User {
-	struct AuthenticatedUser: Content {
-		var email: String
-		var id: Int
-	}
-	
-	struct LoginRequest: Content {
-		var email: String
-		var password: String
-	}
+	/// Specifies which token type to authenticate with
+	typealias TokenType = Token
 }
 
