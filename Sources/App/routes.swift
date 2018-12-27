@@ -22,7 +22,5 @@ public func routes(_ router: Router) throws {
 	try router.register(collection: UsersController())
     
     // Add (unprotected) utility routes
-    let utilityController = UtilityController()
-    router.get("os", use: utilityController.os)
-    router.get("dbversion", use: utilityController.databaseVersion)
+    try router.register(collection: UtilityController())
 }

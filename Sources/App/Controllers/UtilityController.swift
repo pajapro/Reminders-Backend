@@ -12,7 +12,12 @@ fileprivate struct PostgreSQLVersion: Codable {
     let version: String
 }
 
-final class UtilityController {
+final class UtilityController: RouteCollection {
+	
+	func boot(router route: Router) throws {
+		route.get("dbversion", use: databaseVersion)
+		route.get("os", use: os)
+	}
     
     /// Retrieve the database version
     func databaseVersion(_ req: Request) throws -> Future<String> {
