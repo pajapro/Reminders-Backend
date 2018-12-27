@@ -40,12 +40,6 @@ extension User {
 		var password: String
 	}
 	
-	// User login struct
-	struct Login: Content {
-		var email: String
-		var password: String
-	}
-	
 	// User public representation struct
 	struct Outcoming: Content {
 		var email: String
@@ -62,10 +56,19 @@ extension User: Content { }
 /// Allows `User` to be used as a dynamic parameter in route definitions.
 extension User: Parameter { }
 
-// MARK: - TokenAuthenticatable
+// MARK: - TokenAuthenticatable protocol
 extension User: TokenAuthenticatable {
 	
 	/// Specifies which token type to authenticate with
 	typealias TokenType = Token
 }
 
+// MARK: - BasicAuthenticatable protocol
+extension User: BasicAuthenticatable {
+	
+	/// Specifies which property to use for __username__
+	static var usernameKey: UsernameKey { return \User.email }
+	
+	/// Specifies which property to use for __password__
+	static var passwordKey: PasswordKey { return \User.password }
+}

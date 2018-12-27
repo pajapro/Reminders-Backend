@@ -29,19 +29,10 @@ struct Token: PostgreSQLModel {
 
 extension Token {
 	
-	/// Convenience property to retrieve a User for a given Token
-	var user: Parent<Token, User> {
-		return parent(\.userId)
-	}
-	
 	static func createToken(forUser user: User) throws -> Token {
 		let tokenString = Helpers.randomToken(withLength: 60)
 		let newToken = try Token(token: tokenString, userId: user.requireID())
 		return newToken
-	}
-	
-	func updated(with token: String) -> Token {
-		return Token(token: token, userId: userId)
 	}
 }
 

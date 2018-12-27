@@ -13,9 +13,14 @@ import Crypto
 final class UsersController: RouteCollection {
 	
 	func boot(router route: Router) throws {
-		let route = route.grouped("users")
-		route.get(User.parameter, use: index)
-		route.post(use: register)
+		let unprotected = route.grouped("users")
+		
+		let basicAuthMiddleware = User.basicAuthMiddleware(using: BCryptDigest())
+		let basicProtected = unprotected.grouped(basicAuthMiddleware)
+
+		unprotected.post(use: register)
+		basicProtected.post("login", use: login)
+		// TODO: logout
 	}
 	
 	/// Registers a new user and returns generated access token
@@ -33,4 +38,15 @@ final class UsersController: RouteCollection {
 		}
 	}
 	
+	/// Authenticates user with username & password and returns generated access token
+	func login(_ req: Request) throws -> Future<User.Outcoming> {
+		let user = try req.requireAuthenticated(User.self)
+		let accessToken = try Token.createToken(forUser: user)
+		return accessToken.save(on: req).map(to: User.Outcoming.self) { createdToken in
+			let outcomingUser = User.Outcoming(email: user.email, token: createdToken.token)
+			return outcomingUser
+		}
+	}
+	
+	// TODO: logout
 }
