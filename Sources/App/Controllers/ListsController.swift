@@ -1,126 +1,77 @@
 //
 //  ListsController.swift
-//  Reminders-Backend
+//  App
 //
-//  Created by Pavel Procházka on 12/02/2017.
-//
+//  Created by Prochazka, Pavel on 23/11/2018.
 //
 
 import Vapor
-import HTTP
-import PostgreSQLProvider
-import AuthProvider
+import FluentPostgreSQL
+import Authentication
 
-final class ListsController {
-	
-	func addRoutes(to drop: Droplet, with middleware: [Middleware]) {
-		let lists = drop.grouped(middleware).grouped(List.entity)
+/// Controls basic CRUD operations on `List`s.
+final class ListsController: RouteCollection {
+    
+    func boot(router route: Router) throws {
+        let listsRoutes = route.grouped("lists")
+
+		// Using `guardAuthMiddleware` to protect routes that might not otherwise attempt to access the authenticated user (which always requires prior authentication)
+		let tokenProtected = listsRoutes.grouped(User.tokenAuthMiddleware(), User.guardAuthMiddleware())
 		
-		lists.post(handler: create)
-		lists.get(handler: retrieveAll)
-		lists.get(Int.parameter, handler: retrieve)
-		lists.get(Int.parameter, Task.entity, handler: retrieveTasks)
-		lists.put(Int.parameter, handler: update)
-		lists.delete(Int.parameter, handler: delete)
-		
-		// HACK to perform DELETE operation on POST request in order to avoid extra JS in FE
-		lists.post(Int.parameter, "delete", handler: delete)
-	}
-	
-	/// Create a new list
-	func create(for request: Request) throws -> ResponseRepresentable {
-		guard let listTitle = request.data[Identifiers.title]?.string else {
-			throw Abort(.badRequest, reason: "Missing required \(Identifiers.title) value")
-		}
-		
-		let authenticatedUser = try request.currentUser()
-		let list = List(title: listTitle, userId: authenticatedUser.id!)
-		try list.save()
-		
-		// Return JSON for newly created list or redirect to HTML page (GET /lists)
-		if request.headers[HeaderKey.contentType] == Identifiers.json {
-			return try list.makeJSON()
-		} else {
-			return Response(redirect: "/\(List.entity)")
-		}
-	}
-	
-	/// Retrieve all lists or those matching the provided query
-	func retrieveAll(for request: Request) throws -> ResponseRepresentable {
-		let jsonResponse: JSON
-		
-		if let listTitle = request.data[Identifiers.title]?.string {
-			jsonResponse = try request.currentUser().lists.filter(Identifiers.title, .contains, listTitle).all().makeJSON()
-		} else {
-			jsonResponse = try request.currentUser().lists.all().makeJSON()
-		}
-		
-		// Return JSON otherwise HTML page with Lists
-		if request.headers[HeaderKey.contentType] == Identifiers.json {
-			return jsonResponse
-		} else {
-			return try drop.view.make(List.entity, Node(node: [List.entity: jsonResponse]))
-		}
-	}
-	
-	/// Retrieve a list
-	func retrieve(for request: Request) throws -> ResponseRepresentable {
-		let listId = try request.parameters.next(Int.self)
-		
-		let list = try request.currentUser().list(with: listId)
-		
-		return try list.makeJSON()	// No UI hence not returning a view
-	}
-	
-	/// Retrieve all tasks associated with list
-	func retrieveTasks(for request: Request) throws -> ResponseRepresentable {
-		let listId = try request.parameters.next(Int.self)
-		
-		let list = try request.currentUser().list(with: listId)
-		
-		let jsonResponse = try list.tasks.all().makeJSON()
-		
-		// Return JSON otherwise HTML page with Tasks
-		if request.headers[HeaderKey.contentType] == Identifiers.json {
-			return jsonResponse
-		} else {
-			// For HTML response send Task JSONs as well as List JSON
-			return try drop.view.make(Task.entity, Node(node: [List.entity: list.makeJSON(), Task.entity: jsonResponse]))
-		}
-	}
-	
-	/// Update a list
-	func update(for request: Request) throws -> ResponseRepresentable {
-		let listId = try request.parameters.next(Int.self)
-		
-		let list = try request.currentUser().list(with: listId)
-		
-		if let listTitle = request.data[Identifiers.title]?.string {
-			list.title = listTitle
-		}
-		
-		try list.save()
-		return try list.makeJSON()	// No UI hence not returning a view
-	}
-	
-	/// Delete a list
-	func delete(for request: Request) throws -> ResponseRepresentable {
-		let listId = try request.parameters.next(Int.self)
-		
-		let list = try request.currentUser().list(with: listId)
-		
-		// Delete associated tasks with this list
-		let associatedTasks = try list.tasks.all()
-		try associatedTasks.forEach { try $0.delete() }
-		
-		// Delete actual list
-		try list.delete()
-		
-		// Return JSON for newly created list or redirect to HTML page (GET /lists)
-		if request.headers[HeaderKey.contentType] == Identifiers.json {
-			return Response(status: .ok)
-		} else {
-			return Response(redirect: "/\(List.entity)")
-		}
-	}
+        tokenProtected.post(use: create)
+        tokenProtected.get(use: retrieveAll)
+        tokenProtected.get(List.parameter, use: index)
+        tokenProtected.get(List.parameter, "tasks", use: retrieveTasks)
+        tokenProtected.patch(List.parameter, use: update)
+        tokenProtected.delete(List.parameter, use: delete)
+    }
+    
+    /// Saves a decoded `List` to the database.
+    func create(_ req: Request) throws -> Future<List> {
+        return try req.content.decode(List.Incoming.self)
+            .flatMap { list in
+                return list.makeList().save(on: req)
+        }
+        // makeOutcoming ?
+    }
+    
+    /// Returns a list of all `List`s or found by title.
+    func retrieveAll(_ req: Request) throws -> Future<[List]> {
+        do {
+            let searchTerm = try req.query.get(String.self, at: "title")
+            return List.query(on: req).filter(\.title, .ilike, "%\(searchTerm)%").all()
+        } catch {
+            return List.query(on: req).all()
+        }
+    }
+    
+    /// Returns a specific `List`.
+    func index(_ req: Request) throws -> Future<List> {
+        return try req.parameters.next(List.self)
+    }
+    
+    /// Returns an array of `Task`s accociated with given `List`
+    func retrieveTasks(_ req: Request) throws -> Future<[Task]> {
+        return try req.parameters.next(List.self).flatMap { list in
+            return try list.tasks.query(on: req).all()
+        }
+    }
+    
+    /// Updates a specific `List`.
+    func update(_ req: Request) throws -> Future<List> {
+        let existingList = try req.parameters.next(List.self)
+        let incomingList = try req.content.decode(List.Incoming.self)
+        
+        // ❗️ combine 2 async requests into one
+        return flatMap(to: List.self, existingList, incomingList) { (existing, upcoming) in
+            return existing.patched(with: upcoming).update(on: req)
+        }
+    }
+    
+    /// Deletes a specific `List`.
+    func delete(_ req: Request) throws -> Future<HTTPStatus> {
+        return try req.parameters.next(List.self).flatMap { list in
+            return list.delete(on: req)
+            }.transform(to: .ok)
+    }
 }

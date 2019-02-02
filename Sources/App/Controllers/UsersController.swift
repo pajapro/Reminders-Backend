@@ -1,99 +1,63 @@
 //
 //  UsersController.swift
-//  Reminders-Backend
+//  App
 //
-//  Created by Pavel Procházka on 04/03/2017.
-//
+//  Created by Pavel Procházka on 25/12/2018.
 //
 
 import Vapor
-import HTTP
-import PostgreSQLProvider
-import VaporValidation	// temporary bug, should be renamed to `ValidationProvider` when fixed https://github.com/vapor/validation-provider/issues/8
-import AuthProvider
+import FluentPostgreSQL
+import Crypto
 
-final class UsersController {
+/// Controls basic CRUD operations on `User`s.
+final class UsersController: RouteCollection {
 	
-	func addRoutes(drop: Droplet) {
-		let users = drop.grouped(User.entity)
+	func boot(router route: Router) throws {
+		let unprotected = route.grouped("users")
 		
-		users.get("registration", handler: { _ in return try drop.view.make("registration") })	// Shortcut to retrieve a registration form
-		users.post(handler: create)
-		users.post("login", handler: login)
-		users.get("logout", handler: logout)
-	}
-	
-	/// Create a new user
-	func create(for request: Request) throws -> ResponseRepresentable {
+		let basicAuthMiddleware = User.basicAuthMiddleware(using: BCryptDigest())
+		let basicProtected = unprotected.grouped(basicAuthMiddleware)
 		
-		// Validate name input
-		guard let name = request.data[Identifiers.name]?.string, name.passes(OnlyAlphanumeric()) else {
-			throw Abort(.badRequest, reason: "\(Identifiers.name) must be an alphanumeric value")
-		}
-		
-		// Validate email input
-		guard let email = request.data[Identifiers.email]?.string, email.passes(EmailValidator()) else {
-			throw Abort(.badRequest, reason: "\(Identifiers.email) must be a valid email address")
-		}
-		
-		// Obtain password input
-		guard let rawPassword = request.data[Identifiers.password]?.string else {
-			throw Abort(.badRequest, reason: "Missing required \(Identifiers.password) value")
-		}
+		let tokenProtected = unprotected.grouped(User.tokenAuthMiddleware(), User.guardAuthMiddleware())
 
-		guard let user = User(name: name, email: email, rawPassword: rawPassword) else {
-			throw Abort(.internalServerError)
-		}
-		
-		// Ensure user with the given email does not already exists
-		if try User.makeQuery().filter(Identifiers.email, user.email).first() == nil {
-			try user.save()
-		} else {
-			throw Abort(.badRequest, reason: "Account already taken, please choose another email to register")
-		}
-		
-		let credentials = Password(username: email, password: rawPassword)
-		let authenticatedUser = try User.authenticate(credentials) // `PersistMiddleware` will take care of persisting our user once they've been authenticated.
-		request.auth.authenticate(authenticatedUser)
+		unprotected.post(use: register)
+		basicProtected.post("login", use: login)
+		tokenProtected.post("logout", use: logout)
+	}
 	
-		// Return JSON for newly created user or redirect to HTML page (GET /lists)
-		if request.headers[HeaderKey.contentType] == Identifiers.json {
-			return try user.makeJSON()
-		} else {
-			return Response(redirect: "/lists")
+	/// Registers a new user and returns generated access token
+	func register(_ req: Request) throws -> Future<User.Outcoming> {
+		return try req.content.decode(User.Registration.self).flatMap(to: User.Outcoming.self) { registrationUser in
+			let passwordHashed = try req.make(BCryptDigest.self).hash(registrationUser.password)
+			let newUser = User(name: registrationUser.name, email: registrationUser.email, password: passwordHashed)
+			return newUser.save(on: req).flatMap(to: User.Outcoming.self) { createdUser in
+				let accessToken = try Token.createToken(forUser: createdUser)
+				return accessToken.save(on: req).map(to: User.Outcoming.self) { createdToken in
+					let outcomingUser = User.Outcoming(email: newUser.email, token: createdToken.token)
+					return outcomingUser
+				}
+			}
 		}
 	}
 	
-	/// Login a user
-	func login(for request: Request) throws -> ResponseRepresentable {
-		guard let email = request.data[Identifiers.email]?.string else {
-			throw Abort(.badRequest, reason: "Missing required \(Identifiers.email) value")
-		}
-		
-		guard let rawPassword = request.data[Identifiers.password]?.string else {
-			throw Abort(.badRequest, reason: "Missing required \(Identifiers.password) value")
-		}
-		
-		let credentials = Password(username: email, password: rawPassword)
-		let authenticatedUser = try User.authenticate(credentials)
-		request.auth.authenticate(authenticatedUser)
-		
-		drop.log.self.info("User logged in to the app 🤗")
-		
-		// Return JSON for newly created user or redirect to HTML page (GET /lists)
-		if request.headers[HeaderKey.contentType] == Identifiers.json {
-			return Response(status: .ok)	// TODO: request.user to return token https://docs.vapor.codes/2.0/auth/getting-started/#example
-		} else {
-			return Response(redirect: "/lists")
+	/// Authenticates user with username & password and returns generated access token
+	func login(_ req: Request) throws -> Future<User.Outcoming> {
+		let user = try req.requireAuthenticated(User.self) // will automatically throw an appropriate unauthorized error if the valid credentials were not supplied
+		let accessToken = try Token.createToken(forUser: user)
+		return accessToken.save(on: req).map(to: User.Outcoming.self) { createdToken in
+			let outcomingUser = User.Outcoming(email: user.email, token: createdToken.token)
+			return outcomingUser
 		}
 	}
 	
-	/// Removes authenticated user from request storage
-	func logout(for request: Request) throws -> ResponseRepresentable {
-		try request.auth.unauthenticate()
-		
-		drop.log.self.info("User logged out from the app 🚪")
-		
-		return Response(redirect: "/")
+	/// Removes authenticated user's token from database
+	func logout(_ req: Request) throws -> HTTPResponse {
+		do {
+			let user = try req.requireAuthenticated(User.self)
+			_ = try user.authTokens.query(on: req).delete()
+			return HTTPResponse(status: .ok)
+		} catch _ {
+			return HTTPResponse(status: .internalServerError)
+		}
 	}
 }
