@@ -1,50 +1,42 @@
 //
-//  BasicController.swift
-//  Utility-Backend
+//  UtilityController.swift
+//  App
 //
-//  Created by Pavel Procházka on 11/02/2017.
-//
+//  Created by Prochazka, Pavel on 10/10/2018.
 //
 
 import Vapor
-import PostgreSQLDriver
+import FluentPostgreSQL
 
-final class UtilityController {
+fileprivate struct PostgreSQLVersion: Codable {
+    let version: String
+}
+
+final class UtilityController: RouteCollection {
 	
-	func addRoutes(drop: Droplet) {
-		drop.get(handler: retrieveRoot)
-		drop.get("dbversion", handler: databaseVersion)
-		drop.get("os", handler: retrieveOperatingSystem)
+	func boot(router route: Router) throws {
+		route.get("dbversion", use: databaseVersion)
+		route.get("os", use: os)
 	}
-	
-	/// Retrieve root
-	func retrieveRoot(for request: Request) throws -> ResponseRepresentable {
-		do {
-			_ = try request.currentUser()
-			return try drop.view.make("index", Node(node: ["isLoggedIn": true]))
-		} catch {
-			return try drop.view.make("index", Node(node: ["isLoggedIn": false]))
-		}
-	}
-	
-	/// Retrieve the database version
-	func databaseVersion(for request: Request) throws -> ResponseRepresentable {
-		if let db = drop.database?.driver as? PostgreSQLDriver.Driver {
-			let version = try db.raw("SELECT version()")
-			return JSON(node: version)
-		} else {
-			return "No database connection"
-		}
-	}
-	
-	/// Retrieve the OS application is running in
-	func retrieveOperatingSystem(for request: Request) throws -> ResponseRepresentable {
-		#if os(Linux)
-			return try JSON(node: ["operating_system": "Linux"])
-		#elseif os(OSX)
-			return try JSON(node: ["operating_system": "OSX"])
-		#else
-			return try JSON(node: ["operating_system": "...other OS"])
-		#endif
-	}
+    
+    /// Retrieve the database version
+    func databaseVersion(_ req: Request) throws -> Future<String> {
+        return req.withPooledConnection(to: .psql) { conn in
+            return conn.raw("SELECT version()")
+                .all(decoding: PostgreSQLVersion.self)
+        }.map { rows in
+            return rows[0].version
+        }
+    }
+    
+    /// Retrieve the OS application is running in
+    func os(_ req: Request) throws -> HTTPResponse {
+        #if os(Linux)
+            return HTTPResponse(status: .ok, body: "Linux")
+        #elseif os(OSX)
+            return HTTPResponse(status: .ok, body: "macOS")
+        #else
+            return HTTPResponse(status: .ok, body: "...other OS")
+        #endif
+    }
 }
