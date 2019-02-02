@@ -12,8 +12,6 @@ let package = Package(
 		
 		// 👤 Authentication and Authorization framework for Fluent.
 		.package(url: "https://github.com/vapor/auth.git", from: "2.0.1"),
-		.package(url: "https://github.com/vapor/leaf.git", from: "3.0.2"),
-
     ],
     targets: [
         .target(name: "App", dependencies: ["Vapor", "FluentPostgreSQL", "Authentication"]),

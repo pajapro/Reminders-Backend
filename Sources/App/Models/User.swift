@@ -56,14 +56,7 @@ extension User: Content { }
 /// Allows `User` to be used as a dynamic parameter in route definitions.
 extension User: Parameter { }
 
-// MARK: - TokenAuthenticatable protocol
-extension User: TokenAuthenticatable {
-	
-	/// Specifies which token type to authenticate with
-	typealias TokenType = Token
-}
-
-// MARK: - BasicAuthenticatable protocol
+// MARK: - BasicAuthenticatable protocol for login https://docs.vapor.codes/3.0/auth/api/#basic
 extension User: BasicAuthenticatable {
 	
 	/// Specifies which property to use for __username__
@@ -72,3 +65,12 @@ extension User: BasicAuthenticatable {
 	/// Specifies which property to use for __password__
 	static var passwordKey: PasswordKey { return \User.password }
 }
+
+// MARK: - TokenAuthenticatable protocol for following API client requests https://docs.vapor.codes/3.0/auth/api/#bearer
+extension User: TokenAuthenticatable {
+	
+	/// Specifies which token type to authenticate with
+	typealias TokenType = Token
+}
+
+
