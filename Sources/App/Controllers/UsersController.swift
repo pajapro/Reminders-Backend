@@ -17,10 +17,12 @@ final class UsersController: RouteCollection {
 		
 		let basicAuthMiddleware = User.basicAuthMiddleware(using: BCryptDigest())
 		let basicProtected = unprotected.grouped(basicAuthMiddleware)
+		
+		let tokenProtected = unprotected.grouped(User.tokenAuthMiddleware(), User.guardAuthMiddleware())
 
 		unprotected.post(use: register)
 		basicProtected.post("login", use: login)
-		// TODO: logout
+		tokenProtected.post("logout", use: logout)
 	}
 	
 	/// Registers a new user and returns generated access token
@@ -48,5 +50,14 @@ final class UsersController: RouteCollection {
 		}
 	}
 	
-	// TODO: logout
+	/// Removes authenticated user's token from database
+	func logout(_ req: Request) throws -> HTTPResponse {
+		do {
+			let user = try req.requireAuthenticated(User.self)
+			_ = try user.authTokens.query(on: req).delete()
+			return HTTPResponse(status: .ok)
+		} catch _ {
+			return HTTPResponse(status: .internalServerError)
+		}
+	}
 }
