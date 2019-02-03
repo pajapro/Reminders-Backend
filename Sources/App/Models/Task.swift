@@ -49,7 +49,7 @@ extension Task {
     
     /// Patches `Task` with an instance of `Task.Incoming`
     func patched(with incoming: Incoming) -> Task {
-        return Task(id: id, title: incoming.title, priority: incoming.priority ?? priority, dueDate: incoming.dueDate ?? dueDate, isDone: incoming.isDone ?? isDone, listId: incoming.listId ?? listId)
+		return Task(id: id, title: incoming.title, priority: incoming.priority ?? priority, dueDate: incoming.dueDate ?? dueDate, isDone: incoming.isDone ?? isDone, listId: incoming.listId)
     }
     
     var list: Parent<Task, List> {
