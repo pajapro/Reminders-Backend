@@ -1,6 +1,6 @@
-import FluentPostgreSQL
 import Vapor
 import Authentication
+import FluentPostgreSQL
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
@@ -28,11 +28,10 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 	try databases(config: &databasesConfig)
 	services.register(databasesConfig)
 
-    /// Register model migrations
-    var migrations = MigrationConfig()
-    migrations.add(model: Task.self, database: .psql)
-    migrations.add(model: List.self, database: .psql)
-    migrations.add(model: User.self, database: .psql)
-	migrations.add(model: Token.self, database: .psql)
-    services.register(migrations)
+    /// 🔄 Register model migrations
+	services.register { container -> MigrationConfig in
+		var migrationConfig = MigrationConfig()
+		try migrate(migrations: &migrationConfig)
+		return migrationConfig
+	}
 }
