@@ -23,22 +23,10 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 	
 	print("Env: \(env)")
     
-    // Register PostgreSQL database
-	let psqlConfig: PostgreSQLDatabaseConfig
-	if let url = Environment.get("DATABASE_URL"), let dbConfig = PostgreSQLDatabaseConfig(url: url) { // it will read from this URL in production
-		psqlConfig = dbConfig
-		print("Registered DB from DATABASE_URL")
-	} else { // when environment variable not present, default to local development environment
-		psqlConfig = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "vapor", database: "vapor", password: "password")
-		print("Registered local DB")
-	}
-	let psqlDatabase = PostgreSQLDatabase(config: psqlConfig)
-	var dbConfig = DatabasesConfig()
-    /// Register the configured PostgreSQL database to the database config
-    dbConfig.add(database: psqlDatabase, as: .psql)
-    // Enable logging on the SQLite database
-    dbConfig.enableLogging(on: .psql)
-    services.register(dbConfig)
+    // 🗄 Register PostgreSQL database from databases.swift
+	var databasesConfig = DatabasesConfig()
+	try databases(config: &databasesConfig)
+	services.register(databasesConfig)
 
     /// Register model migrations
     var migrations = MigrationConfig()
