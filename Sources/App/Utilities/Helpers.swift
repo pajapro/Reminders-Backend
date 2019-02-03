@@ -16,7 +16,7 @@ class Helpers {
 		let allowedChars = "$!abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 		var randomString = ""
 		for _ in 0..<length {
-			let randomNumber = Int.random(in: 0...allowedChars.count)
+			let randomNumber = Int.random(in: 0..<allowedChars.count)
 			let randomIndex = allowedChars.index(allowedChars.startIndex, offsetBy: randomNumber)
 			let newCharacter = allowedChars[randomIndex]
 			randomString += String(newCharacter)
