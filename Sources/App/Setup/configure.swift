@@ -10,10 +10,12 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 	/// Register authentication provider
 	try services.register(AuthenticationProvider())
 
-    /// Register routes to the router
-    let router = EngineRouter.default()
-    try routes(router)
-    services.register(router, as: Router.self)
+    // 🔀 Register routes to the router
+    services.register(Router.self) { container -> EngineRouter in
+		let router = EngineRouter.default()
+		try routes(router)
+		return router
+	}
 
     // 🚇 Register middleware
 	var middlewaresConfig = MiddlewareConfig()
